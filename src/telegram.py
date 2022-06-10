@@ -1,7 +1,7 @@
 import httpx
 
 import config
-from text_reports import ReportMessage
+from text_representations import ReportMessage
 
 __all__ = (
     'Telegram',
@@ -40,7 +40,7 @@ def send_message(chat_id: int | str, report_message: ReportMessage) -> bool:
 
     Args:
         chat_id: chat id or username.
-        report_message: report message model from text_reports.py module.
+        report_message: report message model from text_representations.py module.
 
     Returns:
         True on success.
