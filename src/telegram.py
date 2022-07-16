@@ -1,10 +1,11 @@
 import httpx
 
 import config
-from text_representations import ReportMessage
+import views
 
 __all__ = (
     'Telegram',
+    'send_message',
 )
 
 
@@ -35,15 +36,15 @@ class Telegram:
         return response.json()['ok']
 
 
-def send_message(chat_id: int | str, report_message: ReportMessage) -> bool:
+def send_message(chat_id: int | str, message_view: views.MessageView) -> bool:
     """Send message to telegram
 
     Args:
         chat_id: chat id or username.
-        report_message: report message model from text_representations.py module.
+        message_view: report message
 
     Returns:
         True on success.
     """
     bot = Telegram(config.TELEGRAM_BOT_TOKEN)
-    return bot.send_message(chat_id, report_message.as_text())
+    return bot.send_message(chat_id, message_view.as_text())
