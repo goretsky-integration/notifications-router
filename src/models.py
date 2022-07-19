@@ -60,6 +60,14 @@ class OrderByUUID(BaseModel):
     uuid: uuid.UUID
 
 
+class StopsAndResumes(BaseModel):
+    type: str
+    unit_name: str
+    product_name: str
+    staff_name: str
+    datetime: datetime
+
+
 EventPayload: TypeAlias = (
         OrderByUUID
         | StopSaleByStreets
@@ -67,4 +75,5 @@ EventPayload: TypeAlias = (
         | StopSaleBySectors
         | StopSaleByIngredients
         | CheatedOrders
+        | StopsAndResumes
 )

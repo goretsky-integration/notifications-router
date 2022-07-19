@@ -90,7 +90,7 @@ class StopSaleByChannels(StopSale[models.StopSaleByChannels]):
         return text
 
 
-class StopSaleBySectors(StopSale):
+class StopSaleBySectors(StopSale[models.StopSaleBySectors]):
 
     def as_text(self) -> str:
         text = super().as_text()
@@ -98,7 +98,7 @@ class StopSaleBySectors(StopSale):
         return text
 
 
-class StopSaleByStreets(StopSale):
+class StopSaleByStreets(StopSale[models.StopSaleByStreets]):
 
     def as_text(self) -> str:
         text = super().as_text()
@@ -132,4 +132,32 @@ class CanceledOrder:
             f'Заказ сделан в {self._canceled_order.created_at:%H:%M},'
             f' отменён в {self._canceled_order.receipt_printed_at:%H:%M}\n'
             f'Между заказом и отменой прошло {self.humanized_order_duration}'
+        )
+
+
+class StopsAndResumes:
+    type_to_title = {
+        'STOP': 'Остановка',
+        'RESUME': 'Возобновление',
+    }
+
+    def __init__(self, stops_and_resumes: models.StopsAndResumes):
+        self._stops_and_resumes = stops_and_resumes
+
+    @property
+    def title(self) -> str:
+        humanized_title = self.type_to_title.get(self._stops_and_resumes.type, self._stops_and_resumes.type)
+        return f'<b>{humanized_title} продаж</b>'
+
+    @property
+    def humanized_datetime(self) -> str:
+        return f'{self._stops_and_resumes.datetime:%d.%m.%Y %H:%M}'
+
+    def as_text(self) -> str:
+        return (
+            f'{self.title}\n'
+            f'Точка продаж: {self._stops_and_resumes.unit_name}\n'
+            f'Продукт: {self._stops_and_resumes.product_name}\n'
+            f'Сотрудник: {self._stops_and_resumes.staff_name}\n'
+            f'Время: {self.humanized_datetime}'
         )
