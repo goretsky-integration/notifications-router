@@ -102,3 +102,67 @@ def test_stop_sales_by_channels():
     views.StopSaleByChannels.humanized_order_duration = '15 минут'
     views.StopSaleByChannels.is_urgent = False
     assert views.StopSaleByChannels(stop_sales).as_text() == expected
+
+
+def test_stops_and_resumes():
+    stops_and_resumes = models.StopsAndResumes(
+        type='STOP',
+        unit_name='Москва 4-1',
+        product_name='Тесто 45',
+        staff_name='Sarafan Rustam',
+        datetime='2022-07-17T00:00:00'
+    )
+    expected = (
+        '<b>Остановка продаж</b>\n'
+        'Точка продаж: Москва 4-1\n'
+        'Продукт: Тесто 45\n'
+        'Сотрудник: Sarafan Rustam\n'
+        'Время: 17.07.2022 00:00'
+    )
+    assert views.StopsAndResumes(stops_and_resumes).as_text() == expected
+
+    stops_and_resumes = models.StopsAndResumes(
+        type='RESUME',
+        unit_name='Москва 4-1',
+        product_name='Тесто 45',
+        staff_name='Sarafan Rustam',
+        datetime='2022-07-17T00:00:00'
+    )
+    expected = (
+        '<b>Возобновление продаж</b>\n'
+        'Точка продаж: Москва 4-1\n'
+        'Продукт: Тесто 45\n'
+        'Сотрудник: Sarafan Rustam\n'
+        'Время: 17.07.2022 00:00'
+    )
+    assert views.StopsAndResumes(stops_and_resumes).as_text() == expected
+
+
+def test_stop_sales_by_sectors():
+    stop_sale = models.StopSaleBySectors(
+        unit_name='Москва 4-1',
+        started_at='2022-06-05T00:00:00',
+        sector_name='Rustama',
+    )
+    expected = (
+        '❗️ Москва 4-1 в стопе 15 минут (с 00:00) ❗️\n'
+        'Сектор: Rustama'
+    )
+    views.StopSaleBySectors.humanized_order_duration = '15 минут'
+    views.StopSaleBySectors.is_urgent = True
+    assert views.StopSaleBySectors(stop_sale).as_text() == expected
+
+
+def test_stop_sales_by_streets():
+    stop_sale = models.StopSaleByStreets(
+        unit_name='Москва 4-1',
+        started_at='2022-06-05T00:00:00',
+        street_name='Rustama',
+    )
+    expected = (
+        '❗️ Москва 4-1 в стопе 15 минут (с 00:00) ❗️\n'
+        'Улица: Rustama'
+    )
+    views.StopSaleByStreets.humanized_order_duration = '15 минут'
+    views.StopSaleByStreets.is_urgent = True
+    assert views.StopSaleByStreets(stop_sale).as_text() == expected
