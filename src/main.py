@@ -59,7 +59,7 @@ def run(event: models.Event):
     reports = db.get_reports_by_report_type(event['type'])
     unit_id_to_chat_ids = group_chat_ids_by_unit_id(reports)
     chat_ids = unit_id_to_chat_ids[event['unit_id']]
-    telegram.send_messages(bot, view.as_text(), *chat_ids)
+    telegram.send_messages(bot, view.as_text(), chat_ids)
 
 
 def main():
