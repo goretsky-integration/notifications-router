@@ -42,6 +42,6 @@ def send_messages(bot: TelegramSender, text: str, chat_ids: Iterable[int]):
     for chat_id in chat_ids:
         is_message_sent = bot.send_message(chat_id, text)
         if is_message_sent:
-            logger.debug(f'Message has been sent')
+            logger.debug(f'Message has been sent to {chat_id}')
         else:
-            logger.warning(f'Message has not been sent')
+            logger.warning(f'Message has not been sent to {chat_id}')
