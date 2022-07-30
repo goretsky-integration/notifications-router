@@ -166,3 +166,23 @@ def test_stop_sales_by_streets():
     views.StopSaleByStreets.humanized_order_duration = '15 минут'
     views.StopSaleByStreets.is_urgent = True
     assert views.StopSaleByStreets(stop_sale).as_text() == expected
+
+
+def test_stop_sales_by_other_ingredients():
+    stopped_ingredients = [
+        models.IngredientStop(
+            started_at='2022-05-05T00:00:00',
+            name='Тесто 45',
+            reason='Out of stock',
+        )
+    ]
+    stop_sales_by_other_ingredients = models.StopSalesByOtherIngredients(
+        unit_name='Москва 4-1',
+        ingredients=stopped_ingredients,
+    )
+    views.StopSalesByOtherIngredients.get_humanized_stop_duration = lambda *args: '15 минут'
+    expected = (
+        'Москва 4-1\n'
+        'Тесто 45 - 15 минут, Out of stock'
+    )
+    assert views.StopSalesByOtherIngredients(stop_sales_by_other_ingredients).as_text() == expected
