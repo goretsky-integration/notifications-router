@@ -212,8 +212,8 @@ class StocksBalance:
         self._stocks_balance = stocks_balance
 
     def as_text(self) -> str:
-        lines = [f'<b>{self._stocks_balance.unit_name}</b>', '<b>На сегодня не хватит!</b>']
+        lines = [f'<b>{self._stocks_balance.unit_name}</b>', '❗️ <b>На сегодня не хватит</b> ❗️']
         for stock_balance in self._stocks_balance.stocks_balance:
             lines.append(f'📍 {stock_balance.ingredient_name} - остаток'
-                         f' {stock_balance.stocks_count} {stock_balance.stocks_unit}')
+                         f' <b><u>{stock_balance.stocks_count} {stock_balance.stocks_unit}</u></b>')
         return '\n'.join(lines)
