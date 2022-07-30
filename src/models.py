@@ -27,6 +27,17 @@ class StopSale(BaseModel):
     started_at: datetime
 
 
+class IngredientStop(BaseModel):
+    started_at: datetime
+    reason: str
+    name: str
+
+
+class StopSalesByOtherIngredients(BaseModel):
+    unit_name: str
+    ingredients: list[IngredientStop]
+
+
 class StopSaleByIngredients(StopSale):
     reason: str
     ingredient_name: str

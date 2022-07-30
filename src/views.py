@@ -1,15 +1,19 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Protocol, Generic, TypeVar, Callable
 
 import humanize
 
 import models
 import utils
+from text_utils import abbreviate_time_units
 
 humanize.i18n.activate("ru_RU")
 
 SS = TypeVar('SS', bound=models.StopSale)
 C = TypeVar('C', bound=Callable)
+
+HOUR_IN_SECONDS = 3600
+DAY_IN_SECONDS = HOUR_IN_SECONDS * 24
 
 
 class MessageView(Protocol[C]):
@@ -161,3 +165,32 @@ class StopsAndResumes:
             f'Сотрудник: {self._stops_and_resumes.staff_name}\n'
             f'Время: {self.humanized_datetime}'
         )
+
+
+class StopSalesByOtherIngredients:
+
+    def __init__(self, stop_sales_by_other_ingredients: models.StopSalesByOtherIngredients):
+        self._stop_sales_by_other_ingredients = stop_sales_by_other_ingredients
+
+    @staticmethod
+    def get_stop_duration(stopped_at: datetime) -> int:
+        return int((utils.get_moscow_datetime() - stopped_at).total_seconds())
+
+    @staticmethod
+    def get_humanized_stop_duration(stopped_at: datetime) -> str:
+        stop_duration = StopSalesByOtherIngredients.get_stop_duration(stopped_at)
+        if stop_duration >= DAY_IN_SECONDS:
+            kwargs = {'format': '%0.0f', 'minimum_unit': 'days', 'suppress': ['months']}
+        elif stop_duration >= HOUR_IN_SECONDS:
+            kwargs = {'format': '%0.0f', 'minimum_unit': 'hours'}
+        else:
+            kwargs = {'format': '%0.0f', 'minimum_unit': 'minutes'}
+        return abbreviate_time_units(humanize.precisedelta(stop_duration, **kwargs))
+
+    def as_text(self) -> str:
+        lines = [self._stop_sales_by_other_ingredients.unit_name]
+        for ingredient in self._stop_sales_by_other_ingredients.ingredients:
+            humanized_stop_duration = self.get_humanized_stop_duration(ingredient.started_at)
+            line = f'{ingredient.name} - {humanized_stop_duration}, {ingredient.reason}'
+            lines.append(line)
+        return '\n'.join(lines)

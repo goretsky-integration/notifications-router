@@ -8,6 +8,7 @@ import views
 from db import consumer
 from units_identify import group_chat_ids_by_unit_id
 from utils import logger
+from text_utils import get_text_by_chunks
 
 
 class Strategy(TypedDict):
@@ -41,8 +42,8 @@ EVENTS_STRATEGY = {
         'view': views.StopSaleByChannels,
     },
     'STOPS_AND_RESUMES': {
-        'model': models.StopsAndResumes,
-        'view': views.StopsAndResumes,
+        'model': models.StopSalesByOtherIngredients,
+        'view': views.StopSalesByOtherIngredients,
     },
 }
 
@@ -59,7 +60,11 @@ def run(event: models.Event):
     reports = db.get_reports_by_report_type(event['type'])
     unit_id_to_chat_ids = group_chat_ids_by_unit_id(reports)
     chat_ids = unit_id_to_chat_ids[event['unit_id']]
-    telegram.send_messages(bot, view.as_text(), chat_ids)
+    print(chat_ids)
+    print(*get_text_by_chunks(view.as_text()))
+    for text_chunk in get_text_by_chunks(view.as_text()):
+        print(text_chunk)
+        telegram.send_messages(bot, text_chunk, chat_ids)
 
 
 def main():
