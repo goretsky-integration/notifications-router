@@ -14,3 +14,6 @@ logger.add(config.LOGS_FILE_PATH, level=log_level, retention='3 days')
 
 def get_moscow_datetime() -> datetime:
     return datetime.utcnow() + timedelta(hours=3)
+
+
+print(get_moscow_datetime())
