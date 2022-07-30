@@ -79,6 +79,18 @@ class StopsAndResumes(BaseModel):
     datetime: datetime
 
 
+class StockBalance(BaseModel):
+    ingredient_name: str
+    days_left: int
+    stocks_count: int | float
+    stocks_unit: str
+
+
+class StocksBalance(BaseModel):
+    unit_name: str
+    stocks_balance: list[StockBalance]
+
+
 EventPayload: TypeAlias = (
         OrderByUUID
         | StopSaleByStreets

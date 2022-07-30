@@ -14,6 +14,7 @@ from text_utils import get_text_by_chunks
 class Strategy(TypedDict):
     model: Type[models.EventPayload]
     view: Type[views.MessageView]
+    alias: str
 
 
 EVENTS_STRATEGY = {
@@ -45,6 +46,11 @@ EVENTS_STRATEGY = {
         'model': models.StopSalesByOtherIngredients,
         'view': views.StopSalesByOtherIngredients,
     },
+    'STOCKS_BALANCE': {
+        'model': models.StocksBalance,
+        'view': views.StocksBalance,
+        'alias': 'STOPS_AND_RESUMES',
+    }
 }
 
 
@@ -55,15 +61,13 @@ def run(event: models.Event):
     except KeyError as error:
         logger.warning(f'Event type {str(error)} has not recognized')
         return
+    event_type = strategy.get('alias', event['type'])
     payload: models.EventPayload = strategy['model'].parse_obj(event['payload'])
     view = strategy['view'](payload)
-    reports = db.get_reports_by_report_type(event['type'])
+    reports = db.get_reports_by_report_type(event_type)
     unit_id_to_chat_ids = group_chat_ids_by_unit_id(reports)
     chat_ids = unit_id_to_chat_ids[event['unit_id']]
-    print(chat_ids)
-    print(*get_text_by_chunks(view.as_text()))
     for text_chunk in get_text_by_chunks(view.as_text()):
-        print(text_chunk)
         telegram.send_messages(bot, text_chunk, chat_ids)
 
 

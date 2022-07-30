@@ -194,3 +194,16 @@ class StopSalesByOtherIngredients:
             line = f'{ingredient.name} - {humanized_stop_duration}, {ingredient.reason}'
             lines.append(line)
         return '\n'.join(lines)
+
+
+class StocksBalance:
+
+    def __init__(self, stocks_balance: models.StocksBalance):
+        self._stocks_balance = stocks_balance
+
+    def as_text(self) -> str:
+        lines = [self._stocks_balance.unit_name, 'На сегодня не хватит!']
+        for stock_balance in self._stocks_balance.stocks_balance:
+            lines.append(f'{stock_balance.ingredient_name} - остаток'
+                         f' {stock_balance.stocks_count} {stock_balance.stocks_unit}')
+        return '\n'.join(lines)
