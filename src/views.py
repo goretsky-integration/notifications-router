@@ -1,5 +1,6 @@
+import collections
 from datetime import timedelta, datetime
-from typing import Protocol, Generic, TypeVar, Callable
+from typing import Protocol, Generic, TypeVar, Callable, Iterable
 
 import humanize
 
@@ -187,12 +188,21 @@ class StopSalesByOtherIngredients:
             kwargs = {'format': '%0.0f', 'minimum_unit': 'minutes'}
         return abbreviate_time_units(humanize.precisedelta(stop_duration, **kwargs))
 
+    @staticmethod
+    def group_by_reason(ingredients: Iterable[models.IngredientStop]) -> dict[str, list[models.IngredientStop]]:
+        stop_reason_to_ingredients: dict[str, list[models.IngredientStop]] = collections.defaultdict(list)
+        for ingredient in ingredients:
+            ingredients_by_stop_reason = stop_reason_to_ingredients[ingredient.reason]
+            ingredients_by_stop_reason.append(ingredient)
+        return stop_reason_to_ingredients
+
     def as_text(self) -> str:
-        lines = [self._stop_sales_by_other_ingredients.unit_name]
-        for ingredient in self._stop_sales_by_other_ingredients.ingredients:
-            humanized_stop_duration = self.get_humanized_stop_duration(ingredient.started_at)
-            line = f'{ingredient.name} - {humanized_stop_duration}, {ingredient.reason}'
-            lines.append(line)
+        lines = [f'<b>{self._stop_sales_by_other_ingredients.unit_name}</b>']
+        for reason, ingredients in self.group_by_reason(self._stop_sales_by_other_ingredients.ingredients).items():
+            lines.append(f'\n<b>{reason}:</b>')
+            for ingredient in sorted(ingredients, key=lambda ingredient: ingredient.started_at, reverse=True):
+                humanized_stop_duration = self.get_humanized_stop_duration(ingredient.started_at)
+                lines.append(f'📍 {ingredient.name} - <b><u>{humanized_stop_duration}</u></b>')
         return '\n'.join(lines)
 
 
@@ -202,8 +212,8 @@ class StocksBalance:
         self._stocks_balance = stocks_balance
 
     def as_text(self) -> str:
-        lines = [self._stocks_balance.unit_name, 'На сегодня не хватит!']
+        lines = [f'<b>{self._stocks_balance.unit_name}</b>', '<b>На сегодня не хватит!</b>']
         for stock_balance in self._stocks_balance.stocks_balance:
-            lines.append(f'{stock_balance.ingredient_name} - остаток'
+            lines.append(f'📍 {stock_balance.ingredient_name} - остаток'
                          f' {stock_balance.stocks_count} {stock_balance.stocks_unit}')
         return '\n'.join(lines)

@@ -174,7 +174,17 @@ def test_stop_sales_by_other_ingredients():
             started_at='2022-05-05T00:00:00',
             name='Тесто 45',
             reason='Out of stock',
-        )
+        ),
+        models.IngredientStop(
+            started_at='2021-05-05T00:00:00',
+            name='Тесто 35',
+            reason='Out of stock',
+        ),
+        models.IngredientStop(
+            started_at='2024-05-05T00:00:00',
+            name='Тесто 55',
+            reason='Cooking',
+        ),
     ]
     stop_sales_by_other_ingredients = models.StopSalesByOtherIngredients(
         unit_name='Москва 4-1',
@@ -182,7 +192,16 @@ def test_stop_sales_by_other_ingredients():
     )
     views.StopSalesByOtherIngredients.get_humanized_stop_duration = lambda *args: '15 минут'
     expected = (
-        'Москва 4-1\n'
-        'Тесто 45 - 15 минут, Out of stock'
+        '<b>Москва 4-1</b>'
+        '\n\n'
+        '<b>Out of stock:</b>'
+        '\n'
+        '📍 Тесто 35 - <b><u>15 минут</u></b>'
+        '\n'
+        '📍 Тесто 45 - <b><u>15 минут</u></b>'
+        '\n\n'
+        '<b>Cooking:</b>'
+        '\n'
+        '📍 Тесто 55 - <b><u>15 минут</u></b>'
     )
     assert views.StopSalesByOtherIngredients(stop_sales_by_other_ingredients).as_text() == expected
