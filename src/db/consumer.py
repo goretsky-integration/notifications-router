@@ -27,7 +27,7 @@ def start_consuming(callback: Callable):
         else:
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    channel.basic_consume(queue='telegram-notifications', on_message_callback=wrapper)
+    channel.basic_consume(queue='telegram-notifications', on_message_callback=wrapper, auto_ack=True)
     channel.start_consuming()
 
 
