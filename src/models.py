@@ -82,7 +82,7 @@ class StopsAndResumes(BaseModel):
 class StockBalance(BaseModel):
     ingredient_name: str
     days_left: int
-    stocks_count: int | float
+    stocks_count: float | int
     stocks_unit: str
 
 
