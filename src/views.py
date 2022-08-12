@@ -35,7 +35,7 @@ class CheatedOrders:
         lines = (
             '<b>❗️ МОШЕННИЧЕСТВО ❗️️',
             f'{self._cheated_orders.unit_name}</b>',
-            f'Номер: {self._cheated_orders.phone_number}',
+            f'Номер: {self._cheated_orders.phone_number.removesuffix(".0")}',
             '\n'.join(f'{order.created_at:%H:%M} - <b>заказ №{order.number}</b>'
                       for order in self._cheated_orders.orders)
         )
