@@ -50,6 +50,10 @@ EVENTS_STRATEGY = {
         'model': models.StocksBalance,
         'view': views.StocksBalance,
         'alias': 'STOPS_AND_RESUMES',
+    },
+    'WRITE_OFFS': {
+        'model': models.WriteOff,
+        'view': views
     }
 }
 

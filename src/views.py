@@ -217,3 +217,19 @@ class StocksBalance:
             lines.append(f'📍 {stock_balance.ingredient_name} - остаток'
                          f' <b><u>{stock_balance.stocks_count} {stock_balance.stocks_unit}</u></b>')
         return '\n'.join(lines)
+
+
+class WriteOff:
+
+    write_off_event_types_map = {
+        models.WriteOffEventType.EXPIRE_AT_15_MINUTES: 'Списание ингредиентов через 15 минут',
+        models.WriteOffEventType.EXPIRE_AT_10_MINUTES: 'Списание ингредиентов через 10 минут',
+        models.WriteOffEventType.EXPIRE_AT_5_MINUTES: 'Списание ингредиентов через 5 минут',
+        models.WriteOffEventType.ALREADY_EXPIRED: 'В пиццерии просрочка',
+    }
+
+    def __init__(self, write_off: models.WriteOff):
+        self._write_off = write_off
+
+    def as_text(self) -> str:
+        return f'<b>❗️ {self._write_off.unit_name} ❗️</b>\n' + self.write_off_event_types_map[self._write_off.event_type]

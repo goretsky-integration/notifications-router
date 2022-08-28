@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from enum import Enum
 from typing import TypedDict, TypeAlias
 
 from pydantic import BaseModel
@@ -89,6 +90,18 @@ class StockBalance(BaseModel):
 class StocksBalance(BaseModel):
     unit_name: str
     stocks_balance: list[StockBalance]
+
+
+class WriteOffEventType(Enum):
+    EXPIRE_AT_15_MINUTES = 'EXPIRE_AT_15_MINUTES'
+    EXPIRE_AT_10_MINUTES = 'EXPIRE_AT_10_MINUTES'
+    EXPIRE_AT_5_MINUTES = 'EXPIRE_AT_5_MINUTES'
+    ALREADY_EXPIRED = 'ALREADY_EXPIRED'
+
+
+class WriteOff(BaseModel):
+    event_type: WriteOffEventType
+    unit_name: str
 
 
 EventPayload: TypeAlias = (
