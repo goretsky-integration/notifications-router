@@ -1,3 +1,5 @@
+import pytest
+
 import models
 import views
 
@@ -205,3 +207,19 @@ def test_stop_sales_by_other_ingredients():
         '📍 Тесто 55 - <b><u>15 минут</u></b>'
     )
     assert views.StopSalesByOtherIngredients(stop_sales_by_other_ingredients).as_text() == expected
+
+
+@pytest.mark.parametrize(
+    'event_type, humanized_event_type',
+    [
+        ('EXPIRE_AT_15_MINUTES', 'Списание ингредиентов через 15 минут'),
+        ('EXPIRE_AT_10_MINUTES', 'Списание ингредиентов через 10 минут'),
+        ('EXPIRE_AT_5_MINUTES', 'Списание ингредиентов через 5 минут'),
+        ('ALREADY_EXPIRED', 'В пиццерии просрочка'),
+    ]
+)
+def test_write_offs(event_type, humanized_event_type):
+    model = models.WriteOff(event_type=event_type, unit_name='Москва 4-1')
+    actual = views.WriteOff(model).as_text()
+    expected = '<b>❗️ Москва 4-1 ❗️</b>' + humanized_event_type
+    assert expected == actual
