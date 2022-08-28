@@ -53,7 +53,7 @@ EVENTS_STRATEGY = {
     },
     'WRITE_OFFS': {
         'model': models.WriteOff,
-        'view': views
+        'view': views.WriteOff,
     }
 }
 
