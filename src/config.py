@@ -9,6 +9,7 @@ __all__ = (
     'DEBUG',
     'RABBITMQ_URL',
     'MONGODB_URL',
+    'DATABASE_API_URL',
 )
 
 env = Env()
@@ -18,6 +19,6 @@ ROOT_PATH = pathlib.Path(__file__).parent.parent
 LOGS_FILE_PATH = ROOT_PATH / 'logs.log'
 
 TELEGRAM_BOT_TOKEN: str = env.str('TELEGRAM_BOT_TOKEN')
-MONGODB_URL: str = env.str('MONGODB_URL')
 DEBUG: bool = env.bool('DEBUG')
 RABBITMQ_URL: str = env.str('RABBITMQ_URL')
+DATABASE_API_URL: str = env.str('DATABASE_API_URL')
