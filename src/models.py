@@ -6,6 +6,11 @@ from typing import TypedDict, TypeAlias
 from pydantic import BaseModel
 
 
+class ChatToRetranslate(BaseModel):
+    chat_id: int
+    unit_ids: tuple[int, ...]
+
+
 class Event(TypedDict):
     type: str
     unit_id: int

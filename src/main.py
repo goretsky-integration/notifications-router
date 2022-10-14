@@ -1,11 +1,10 @@
 from typing import TypedDict, Type
 
 import config
-import db
 import models
 import telegram
 import views
-from db import consumer
+from db import consumer, db_api
 from units_identify import group_chat_ids_by_unit_id
 from utils import logger
 from text_utils import get_text_by_chunks
@@ -68,8 +67,8 @@ def run(event: models.Event):
     event_type = strategy.get('alias', event['type'])
     payload: models.EventPayload = strategy['model'].parse_obj(event['payload'])
     view = strategy['view'](payload)
-    reports = db.get_reports_by_report_type(event_type)
-    unit_id_to_chat_ids = group_chat_ids_by_unit_id(reports)
+    chats_to_retranslate = db_api.get_chats_to_retranslate(event_type)
+    unit_id_to_chat_ids = group_chat_ids_by_unit_id(chats_to_retranslate)
     chat_ids = unit_id_to_chat_ids[event['unit_id']]
     for text_chunk in get_text_by_chunks(view.as_text()):
         telegram.send_messages(bot, text_chunk, chat_ids)
