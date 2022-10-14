@@ -23,4 +23,4 @@ def test_text_chunks_count(big_text):
     chunks_count = words_count // CHUNK_SYMBOLS_COUNT
     if words_count % CHUNK_SYMBOLS_COUNT > 0:
         chunks_count += 1
-    assert chunks_count == len(tuple(get_text_by_chunks(big_text)))
+    assert len(tuple(get_text_by_chunks(big_text))) == chunks_count + 1

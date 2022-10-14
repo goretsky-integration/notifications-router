@@ -198,9 +198,9 @@ def test_stop_sales_by_other_ingredients():
         '\n\n'
         '<b>Out of stock:</b>'
         '\n'
-        '📍 Тесто 35 - <b><u>15 минут</u></b>'
-        '\n'
         '📍 Тесто 45 - <b><u>15 минут</u></b>'
+        '\n'
+        '📍 Тесто 35 - <b><u>15 минут</u></b>'
         '\n\n'
         '<b>Cooking:</b>'
         '\n'
@@ -221,5 +221,5 @@ def test_stop_sales_by_other_ingredients():
 def test_write_offs(event_type, humanized_event_type):
     model = models.WriteOff(event_type=event_type, unit_name='Москва 4-1')
     actual = views.WriteOff(model).as_text()
-    expected = '<b>❗️ Москва 4-1 ❗️</b>' + humanized_event_type
-    assert expected == actual
+    expected = '<b>❗️ Москва 4-1 ❗️</b>\n' + humanized_event_type
+    assert actual == expected
