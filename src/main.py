@@ -57,7 +57,7 @@ EVENTS_STRATEGY = {
 }
 
 
-def run(event: models.Event):
+def on_event(event: models.Event):
     bot = telegram.TelegramSender(config.TELEGRAM_BOT_TOKEN)
     try:
         strategy: Strategy = EVENTS_STRATEGY[event['type']]
@@ -75,7 +75,7 @@ def run(event: models.Event):
 
 
 def main():
-    consumer.start_consuming(run)
+    consumer.start_consuming(on_event)
 
 
 if __name__ == '__main__':

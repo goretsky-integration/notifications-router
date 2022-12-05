@@ -17,11 +17,11 @@ def bytes_to_dict(bytes_string: bytes) -> dict:
     return json.loads(bytes_string.decode('utf-8'))
 
 
-def start_consuming(callback: Callable):
+def start_consuming(on_event: Callable):
     def wrapper(ch, method, properties, body: bytes):
         logger.debug(f'Received message {method.delivery_tag}')
         try:
-            callback(bytes_to_dict(body))
+            on_event(bytes_to_dict(body))
         except Exception:
             logger.error(traceback.format_exc())
         else:
