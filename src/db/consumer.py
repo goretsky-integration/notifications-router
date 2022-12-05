@@ -1,23 +1,42 @@
-import atexit
+import contextlib
 import json
 import traceback
 from typing import Callable
 
-import pika
+from pika import ConnectionParameters, URLParameters, BlockingConnection
+from pika.adapters.blocking_connection import BlockingChannel
 
-import config
-from utils import logger
+from loguru import logger
 
-connection = pika.BlockingConnection(pika.URLParameters(config.RABBITMQ_URL))
-channel = connection.channel()
-channel.queue_declare(queue='telegram-notifications')
+
+__all__ = (
+    'closing_rabbitmq_connection',
+    'closing_rabbitmq_channel',
+)
+
+
+@contextlib.contextmanager
+def closing_rabbitmq_connection(
+        connection_parameters: ConnectionParameters | URLParameters,
+) -> BlockingConnection:
+    with BlockingConnection(connection_parameters) as connection:
+        yield connection
+
+
+@contextlib.contextmanager
+def closing_rabbitmq_channel(
+        connection: BlockingConnection,
+) -> BlockingChannel:
+    with connection.channel() as channel:
+        channel.queue_declare(queue='telegram-notifications')
+        yield channel
 
 
 def bytes_to_dict(bytes_string: bytes) -> dict:
     return json.loads(bytes_string.decode('utf-8'))
 
 
-def start_consuming(on_event: Callable):
+def start_consuming(channel: BlockingChannel, on_event: Callable):
     def wrapper(ch, method, properties, body: bytes):
         logger.debug(f'Received message {method.delivery_tag}')
         try:
@@ -29,6 +48,3 @@ def start_consuming(on_event: Callable):
 
     channel.basic_consume(queue='telegram-notifications', on_message_callback=wrapper)
     channel.start_consuming()
-
-
-atexit.register(connection.close)
