@@ -15,6 +15,7 @@ class Event(TypedDict):
     type: str
     unit_id: int
     payload: dict
+    created_at: datetime
 
 
 class CheatedOrder(BaseModel):
