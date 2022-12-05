@@ -1,24 +1,36 @@
 import pathlib
-
-from environs import Env
+from configparser import ConfigParser
+from dataclasses import dataclass
 
 __all__ = (
     'ROOT_PATH',
     'LOGS_FILE_PATH',
-    'TELEGRAM_BOT_TOKEN',
-    'DEBUG',
-    'RABBITMQ_URL',
-    'MONGODB_URL',
-    'DATABASE_API_URL',
+    'load_config',
+    'Config',
 )
 
-env = Env()
-env.read_env()
+
+@dataclass(frozen=True, slots=True)
+class Config:
+    telegram_bot_token: str
+    debug: bool
+    rabbitmq_url: str
+    database_api_url: str
+
+
+def load_config(config_file_path: str | pathlib.Path) -> Config:
+    config_parser = ConfigParser()
+    config_parser.read(config_file_path)
+
+    app_config = config_parser['app']
+
+    return Config(
+        telegram_bot_token=app_config.get('telegram_bot_token'),
+        debug=app_config.getboolean('debug'),
+        rabbitmq_url=app_config.get('rabbitmq_url'),
+        database_api_url=app_config.get('database_api_url'),
+    )
+
 
 ROOT_PATH = pathlib.Path(__file__).parent.parent
 LOGS_FILE_PATH = ROOT_PATH / 'logs.log'
-
-TELEGRAM_BOT_TOKEN: str = env.str('TELEGRAM_BOT_TOKEN')
-DEBUG: bool = env.bool('DEBUG')
-RABBITMQ_URL: str = env.str('RABBITMQ_URL')
-DATABASE_API_URL: str = env.str('DATABASE_API_URL')
