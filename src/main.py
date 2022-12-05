@@ -1,81 +1,29 @@
-from typing import TypedDict, Type
+import pathlib
 
-import config
-import models
-import telegram
-import views
-from db import consumer, db_api
-from units_identify import group_chat_ids_by_unit_id
-from utils import logger
-from text_utils import get_text_by_chunks
+from pika import URLParameters
+from loguru import logger
 
-
-class Strategy(TypedDict):
-    model: Type[models.EventPayload]
-    view: Type[views.MessageView]
-    alias: str
-
-
-EVENTS_STRATEGY = {
-    'CANCELED_ORDERS': {
-        'model': models.OrderByUUID,
-        'view': views.CanceledOrder,
-    },
-    'CHEATED_PHONE_NUMBERS': {
-        'model': models.CheatedOrders,
-        'view': views.CheatedOrders,
-    },
-    'INGREDIENTS_STOP_SALES': {
-        'model': models.StopSaleByIngredients,
-        'view': views.StopSaleByIngredients,
-    },
-    'STREET_STOP_SALES': {
-        'model': models.StopSaleByStreets,
-        'view': views.StopSaleByStreets,
-    },
-    'SECTOR_STOP_SALES': {
-        'model': models.StopSaleBySectors,
-        'view': views.StopSaleBySectors,
-    },
-    'PIZZERIA_STOP_SALES': {
-        'model': models.StopSaleByChannels,
-        'view': views.StopSaleByChannels,
-    },
-    'STOPS_AND_RESUMES': {
-        'model': models.StopSalesByOtherIngredients,
-        'view': views.StopSalesByOtherIngredients,
-    },
-    'STOCKS_BALANCE': {
-        'model': models.StocksBalance,
-        'view': views.StocksBalance,
-        'alias': 'STOPS_AND_RESUMES',
-    },
-    'WRITE_OFFS': {
-        'model': models.WriteOff,
-        'view': views.WriteOff,
-    }
-}
-
-
-def on_event(event: models.Event):
-    bot = telegram.TelegramSender(config.TELEGRAM_BOT_TOKEN)
-    try:
-        strategy: Strategy = EVENTS_STRATEGY[event['type']]
-    except KeyError as error:
-        logger.warning(f'Event type {str(error)} has not recognized')
-        return
-    event_type = strategy.get('alias', event['type'])
-    payload: models.EventPayload = strategy['model'].parse_obj(event['payload'])
-    view = strategy['view'](payload)
-    chats_to_retranslate = db_api.get_chats_to_retranslate(event_type)
-    unit_id_to_chat_ids = group_chat_ids_by_unit_id(chats_to_retranslate)
-    chat_ids = unit_id_to_chat_ids[event['unit_id']]
-    for text_chunk in get_text_by_chunks(view.as_text()):
-        telegram.send_messages(bot, text_chunk, chat_ids)
+from config import load_config
+from db import consumer
+from events import EventHandler
+from telegram import TelegramSender
 
 
 def main():
-    consumer.start_consuming(on_event)
+    config_file_path = pathlib.Path(__file__).parent.parent / 'config.ini'
+    logfile_path = pathlib.Path(__file__).parent.parent / 'logs.log'
+    config = load_config(config_file_path)
+
+    loglevel = 'DEBUG' if config.debug else 'INFO'
+    logger.add(logfile_path, level=loglevel)
+
+    telegram_sender = TelegramSender(config.telegram_bot_token)
+    event_handler = EventHandler(telegram_sender)
+
+    rabbitmq_connection_parameters = URLParameters(config.rabbitmq_url)
+    with consumer.closing_rabbitmq_connection(rabbitmq_connection_parameters) as rabbitmq_connection:
+        with consumer.closing_rabbitmq_channel(rabbitmq_connection) as rabbitmq_channel:
+            consumer.start_consuming(rabbitmq_channel, on_event=event_handler)
 
 
 if __name__ == '__main__':
