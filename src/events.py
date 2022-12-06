@@ -5,7 +5,7 @@ from loguru import logger
 
 import models
 import views
-from db import db_api
+from db_api import DatabaseAPI
 from telegram import TelegramSender
 from text_utils import get_text_by_chunks
 from units_identify import group_chat_ids_by_unit_id
@@ -46,8 +46,9 @@ class EventExpirationFilter:
 
 class EventHandler:
 
-    def __init__(self, telegram_sender: TelegramSender):
+    def __init__(self, telegram_sender: TelegramSender, database_api: DatabaseAPI):
         self.__telegram_sender = telegram_sender
+        self.__database_api = database_api
 
     def __call__(self, event: models.Event):
         try:
@@ -59,7 +60,7 @@ class EventHandler:
         event_type = strategy.get('alias', event['type'])
         payload: models.EventPayload = strategy['model'].parse_obj(event['payload'])
         view = strategy['view'](payload)
-        chats_to_retranslate = db_api.get_chats_to_retranslate(event_type)
+        chats_to_retranslate = self.__database_api.get_chats_to_retranslate(event_type)
         unit_id_to_chat_ids = group_chat_ids_by_unit_id(chats_to_retranslate)
         chat_ids = unit_id_to_chat_ids[event['unit_id']]
         for text_chunk in get_text_by_chunks(view.as_text()):
