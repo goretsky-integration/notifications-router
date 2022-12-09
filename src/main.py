@@ -6,7 +6,7 @@ from loguru import logger
 from config import load_config
 import consumer
 from db_api import DatabaseAPI
-from events import EventHandler
+from events import EventHandler, EventExpirationFilter
 from telegram import TelegramSender
 
 
@@ -21,7 +21,8 @@ def main():
     database_api = DatabaseAPI(config.database_api_url)
 
     telegram_sender = TelegramSender(config.telegram_bot_token)
-    event_handler = EventHandler(telegram_sender, database_api)
+    event_expiration_filter = EventExpirationFilter(max_lifetime_in_seconds=config.event_max_lifetime_in_seconds)
+    event_handler = EventHandler(telegram_sender, database_api, event_expiration_filter)
 
     rabbitmq_connection_parameters = URLParameters(config.rabbitmq_url)
     with consumer.closing_rabbitmq_connection(rabbitmq_connection_parameters) as rabbitmq_connection:

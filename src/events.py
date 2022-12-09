@@ -46,15 +46,25 @@ class EventExpirationFilter:
 
 class EventHandler:
 
-    def __init__(self, telegram_sender: TelegramSender, database_api: DatabaseAPI):
+    def __init__(
+            self,
+            telegram_sender: TelegramSender,
+            database_api: DatabaseAPI,
+            event_expiration_filter: EventExpirationFilter,
+    ):
         self.__telegram_sender = telegram_sender
         self.__database_api = database_api
+        self.__event_expiration_filter = event_expiration_filter
 
     def __call__(self, event: models.Event):
         try:
             strategy: Strategy = EVENTS_STRATEGY[event['type']]
         except KeyError as error:
             logger.warning(f'Event type {str(error)} has not recognized')
+            return
+
+        if self.__event_expiration_filter.is_expired(event['created_at']):
+            logger.debug(f'Event {event} was expired')
             return
 
         event_type = strategy.get('alias', event['type'])
