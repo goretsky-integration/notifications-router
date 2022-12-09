@@ -2,13 +2,6 @@ name: test
 
 on: push
 
-env:
-  MONGODB_URL: url
-  DEBUG: true
-  TELEGRAM_BOT_TOKEN: fsdfdsgjfgjfdjfjsdfsd
-  RABBITMQ_URL: str
-  DATABASE_API_URL: str
-
 jobs:
   test:
     runs-on: ubuntu-latest
