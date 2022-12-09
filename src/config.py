@@ -16,6 +16,7 @@ class Config:
     debug: bool
     rabbitmq_url: str
     database_api_url: str
+    event_max_lifetime_in_seconds: int
 
 
 def load_config(config_file_path: str | pathlib.Path) -> Config:
@@ -29,6 +30,7 @@ def load_config(config_file_path: str | pathlib.Path) -> Config:
         debug=app_config.getboolean('debug'),
         rabbitmq_url=app_config.get('rabbitmq_url'),
         database_api_url=app_config.get('database_api_url'),
+        event_max_lifetime_in_seconds=app_config.getint('event_max_lifetime_in_seconds'),
     )
 
 
