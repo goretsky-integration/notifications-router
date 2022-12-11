@@ -63,7 +63,8 @@ class EventHandler:
             logger.warning(f'Event type {str(error)} has not recognized')
             return
 
-        if self.__event_expiration_filter.is_expired(event['created_at']):
+        event_created_at = datetime.datetime.fromisoformat(event['created_at'])
+        if self.__event_expiration_filter.is_expired(event_created_at):
             logger.debug(f'Event {event} was expired')
             return
 
