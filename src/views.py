@@ -198,6 +198,8 @@ class StopSalesByOtherIngredients:
 
     def as_text(self) -> str:
         lines = [f'<b>{self._stop_sales_by_other_ingredients.unit_name}</b>']
+        if not self._stop_sales_by_other_ingredients.ingredients:
+            lines.append('<b>Стопов пока нет! Молодцы. Ваши Клиенты довольны</b>')
         for reason, ingredients in self.group_by_reason(self._stop_sales_by_other_ingredients.ingredients).items():
             lines.append(f'\n<b>{reason}:</b>')
             for ingredient in sorted(ingredients, key=lambda ingredient: ingredient.started_at, reverse=True):
@@ -212,7 +214,9 @@ class StocksBalance:
         self._stocks_balance = stocks_balance
 
     def as_text(self) -> str:
-        lines = [f'<b>{self._stocks_balance.unit_name}</b>', '❗️ <b>На сегодня не хватит</b> ❗️']
+        lines = [f'<b>{self._stocks_balance.unit_name}</b>']
+        lines.append('❗️ <b>На сегодня не хватит</b> ❗️' if self._stocks_balance.stocks_balance
+                     else '<b>На сегодня всего достаточно</b>')
         for stock_balance in self._stocks_balance.stocks_balance:
             lines.append(f'📍 {stock_balance.ingredient_name} - остаток'
                          f' <b><u>{stock_balance.stocks_count} {stock_balance.stocks_unit}</u></b>')
@@ -220,7 +224,6 @@ class StocksBalance:
 
 
 class WriteOff:
-
     write_off_event_types_map = {
         models.WriteOffEventType.EXPIRE_AT_15_MINUTES: 'Списание ингредиентов через 15 минут',
         models.WriteOffEventType.EXPIRE_AT_10_MINUTES: 'Списание ингредиентов через 10 минут',
@@ -232,4 +235,5 @@ class WriteOff:
         self._write_off = write_off
 
     def as_text(self) -> str:
-        return f'<b>❗️ {self._write_off.unit_name} ❗️</b>\n' + self.write_off_event_types_map[self._write_off.event_type]
+        return f'<b>❗️ {self._write_off.unit_name} ❗️</b>\n' + self.write_off_event_types_map[
+            self._write_off.event_type]
