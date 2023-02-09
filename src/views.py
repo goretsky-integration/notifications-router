@@ -118,7 +118,7 @@ class CanceledOrder:
 
     @property
     def order_duration(self) -> timedelta:
-        return self._canceled_order.receipt_printed_at - self._canceled_order.created_at
+        return self._canceled_order.canceled_at - self._canceled_order.created_at
 
     @property
     def humanized_order_duration(self) -> str:
@@ -135,7 +135,7 @@ class CanceledOrder:
             f' <a href="{self.order_url}">№{self._canceled_order.number}</a> в {self._canceled_order.price}₽\n'
             f'Тип заказа: {self._canceled_order.type}\n'
             f'Заказ сделан в {self._canceled_order.created_at:%H:%M},'
-            f' отменён в {self._canceled_order.receipt_printed_at:%H:%M}\n'
+            f' отменён в {self._canceled_order.canceled_at:%H:%M}\n'
             f'Между заказом и отменой прошло {self.humanized_order_duration}'
         )
 

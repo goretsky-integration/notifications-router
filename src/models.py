@@ -71,7 +71,7 @@ class ReportFromMongoDB(TypedDict):
 class OrderByUUID(BaseModel):
     unit_name: str
     created_at: datetime
-    receipt_printed_at: datetime
+    canceled_at: datetime
     number: str
     type: str
     price: int
