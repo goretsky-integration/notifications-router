@@ -1,3 +1,4 @@
+import time
 from typing import Iterable
 
 import httpx
@@ -25,14 +26,23 @@ class TelegramSender:
         Raises:
             TelegramAPIError on error with description.
         """
-        response = httpx.post(
-            url=self._send_message_url,
-            json={
-                'text': text,
-                'chat_id': chat_id,
-                'parse_mode': 'html',
-            }
-        )
+        for _ in range(3):
+            try:
+                response = httpx.post(
+                    url=self._send_message_url,
+                    json={
+                        'text': text,
+                        'chat_id': chat_id,
+                        'parse_mode': 'html',
+                    }
+                )
+            except httpx.ConnectError:
+                logger.error('HTTP Connect Error. Trying again')
+            else:
+                break
+        else:
+            raise exceptions.TelegramAPIError('Could not connect to Telegram API')
+
         response_data = response.json()
         if not response_data['ok']:
             error_description = response_data.get('description')
@@ -43,6 +53,8 @@ class TelegramSender:
             try:
                 self.send_message(chat_id, text)
             except exceptions.TelegramAPIError as error:
-                logger.warning(f'Could not send message to {chat_id}. Error {error.error_description}')
+                logger.error(f'Could not send message to {chat_id}. Error {error.error_description}')
             else:
                 logger.info(f'Message sent to {chat_id}')
+            finally:
+                time.sleep(0.5)
