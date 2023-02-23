@@ -1,7 +1,9 @@
 import datetime
+import traceback
 from typing import Callable, TypedDict, Type
 
 from loguru import logger
+from pydantic import ValidationError
 
 import models
 import views
@@ -56,24 +58,25 @@ class EventHandler:
         self.__database_api = database_api
         self.__event_expiration_filter = event_expiration_filter
 
-    def __call__(self, event: models.Event):
+    def __call__(self, event: models.RawEvent):
         try:
-            strategy: Strategy = EVENTS_STRATEGY[event['type']]
-        except KeyError as error:
-            logger.warning(f'Event type {str(error)} has not recognized')
+            event: models.EventFromMessageQueue = models.EventFromMessageQueue.parse_obj(event)
+        except ValidationError:
+            logger.error(f'Could not parse event: {traceback.format_exc()}')
             return
 
-        event_created_at = datetime.datetime.fromisoformat(event['created_at'])
-        if self.__event_expiration_filter.is_expired(event_created_at):
+        if self.__event_expiration_filter.is_expired(event.created_at):
             logger.debug(f'Event {event} was expired')
             return
 
-        event_type = strategy.get('alias', event['type'])
-        payload: models.EventPayload = strategy['model'].parse_obj(event['payload'])
+        strategy = EVENTS_STRATEGY[event.type]
+
+        event_type = strategy.get('alias', event.type)
+        payload: models.EventPayload = strategy['model'].parse_obj(event.payload)
         view = strategy['view'](payload)
         chats_to_retranslate = self.__database_api.get_report_routes(event_type)
         unit_id_to_chat_ids = group_chat_ids_by_unit_id(chats_to_retranslate)
-        chat_ids = unit_id_to_chat_ids[event['unit_id']]
+        chat_ids = unit_id_to_chat_ids[event.unit_id]
         for text_chunk in get_text_by_chunks(view.as_text()):
             self.__telegram_sender.send_messages(text_chunk, chat_ids)
 
