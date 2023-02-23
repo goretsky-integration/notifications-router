@@ -66,12 +66,12 @@ class EventHandler:
             return
 
         if self.__event_expiration_filter.is_expired(event.created_at):
-            logger.debug(f'Event {event} was expired')
+            logger.info(f'Event {event} was expired')
             return
 
         strategy = EVENTS_STRATEGY[event.type]
 
-        event_type = strategy.get('alias', event.type)
+        event_type = strategy.get('alias', event.type.name)
         payload: models.EventPayload = strategy['model'].parse_obj(event.payload)
         view = strategy['view'](payload)
         chats_to_retranslate = self.__database_api.get_report_routes(event_type)
