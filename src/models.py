@@ -3,15 +3,33 @@ from datetime import datetime
 from enum import Enum
 from typing import TypedDict, TypeAlias
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PositiveInt
 
 
-class ChatToRetranslate(BaseModel):
+class EventFromMessageQueueType(str, Enum):
+    INGREDIENTS_STOP_SALES = 'INGREDIENTS_STOP_SALES'
+    STREET_STOP_SALES = 'STREET_STOP_SALES'
+    SECTOR_STOP_SALES = 'SECTOR_STOP_SALES'
+    PIZZERIA_STOP_SALES = 'PIZZERIA_STOP_SALES'
+    STOPS_AND_RESUMES = 'STOPS_AND_RESUMES'
+    CANCELED_ORDERS = 'CANCELED_ORDERS'
+    CHEATED_PHONE_NUMBERS = 'CHEATED_PHONE_NUMBERS'
+    WRITE_OFFS = 'WRITE_OFFS'
+
+
+class EventFromMessageQueue(BaseModel):
+    type: EventFromMessageQueueType
+    unit_id: PositiveInt
+    payload: dict
+    created_at: datetime
+
+
+class ReportRoute(BaseModel):
     chat_id: int
     unit_ids: tuple[int, ...]
 
 
-class Event(TypedDict):
+class RawEvent(TypedDict):
     type: str
     unit_id: int
     payload: dict
