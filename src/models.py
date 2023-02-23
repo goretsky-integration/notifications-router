@@ -24,7 +24,7 @@ class EventFromMessageQueue(BaseModel):
     created_at: datetime
 
 
-class ChatToRetranslate(BaseModel):
+class ReportRoute(BaseModel):
     chat_id: int
     unit_ids: tuple[int, ...]
 

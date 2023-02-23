@@ -74,9 +74,10 @@ class EventHandler:
         event_type = strategy.get('alias', event.type.name)
         payload: models.EventPayload = strategy['model'].parse_obj(event.payload)
         view = strategy['view'](payload)
-        chats_to_retranslate = self.__database_api.get_report_routes(event_type)
-        unit_id_to_chat_ids = group_chat_ids_by_unit_id(chats_to_retranslate)
+        report_routes = self.__database_api.get_report_routes(event_type)
+        unit_id_to_chat_ids = group_chat_ids_by_unit_id(report_routes)
         chat_ids = unit_id_to_chat_ids[event.unit_id]
+        logger.info(f'Sending event {event.type.name} by unit {event.unit_id} to chats {chat_ids}')
         for text_chunk in get_text_by_chunks(view.as_text()):
             self.__telegram_sender.send_messages(text_chunk, chat_ids)
 
