@@ -125,5 +125,9 @@ EVENTS_STRATEGY = {
     'WRITE_OFFS': {
         'model': models.WriteOff,
         'view': views.WriteOff,
+    },
+    'PROMO_CODES_USAGE': {
+        'model': models.UnitUsedPromoCodes,
+        'view': views.UnitUsedPromoCodes,
     }
 }

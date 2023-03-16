@@ -237,3 +237,18 @@ class WriteOff:
     def as_text(self) -> str:
         return f'<b>❗️ {self._write_off.unit_name} ❗️</b>\n' + self.write_off_event_types_map[
             self._write_off.event_type]
+
+
+class UnitUsedPromoCodes:
+
+    def __init__(self, unit_used_promo_codes: models.UnitUsedPromoCodes):
+        self.__unit_used_promo_codes = unit_used_promo_codes
+
+    def as_text(self) -> str:
+        lines = [
+            f'<b>{self.__unit_used_promo_codes.unit_name}:</b>',
+            'Использованы промокоды:\n',
+        ]
+        for promo_code in self.__unit_used_promo_codes.promo_codes:
+            lines.append(f'📍 <u>{promo_code.promo_code}</u> - заказ №{promo_code.order_no}')
+        return '\n'.join(lines)

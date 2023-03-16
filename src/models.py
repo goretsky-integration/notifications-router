@@ -15,6 +15,7 @@ class EventFromMessageQueueType(str, Enum):
     CANCELED_ORDERS = 'CANCELED_ORDERS'
     CHEATED_PHONE_NUMBERS = 'CHEATED_PHONE_NUMBERS'
     WRITE_OFFS = 'WRITE_OFFS'
+    PROMO_CODES_USAGE = 'PROMO_CODES_USAGE'
 
 
 class EventFromMessageQueue(BaseModel):
@@ -126,6 +127,16 @@ class WriteOffEventType(Enum):
 class WriteOff(BaseModel):
     event_type: WriteOffEventType
     unit_name: str
+
+
+class UsedPromoCode(BaseModel):
+    promo_code: str
+    order_no: str
+
+
+class UnitUsedPromoCodes(BaseModel):
+    unit_name: str
+    promo_codes: list[UsedPromoCode]
 
 
 EventPayload: TypeAlias = (
