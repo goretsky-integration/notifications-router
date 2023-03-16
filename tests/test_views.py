@@ -223,3 +223,28 @@ def test_write_offs(event_type, humanized_event_type):
     actual = views.WriteOff(model).as_text()
     expected = '<b>❗️ Москва 4-1 ❗️</b>\n' + humanized_event_type
     assert actual == expected
+
+
+def test_unit_used_promocode():
+    unit_used_promocodes = models.UnitUsedPromoCodes(
+        unit_name='Москва 4-1',
+        promo_codes=[
+            models.UsedPromoCode(
+                promo_code='QW3GY4X',
+                order_no='32-2',
+            ),
+            models.UsedPromoCode(
+                promo_code='GJ46J2FS',
+                order_no='22-3',
+            ),
+        ],
+    )
+    view = views.UnitUsedPromoCodes(unit_used_promocodes)
+    expected = (
+        '<b>Москва 4-1:</b>'
+        '\nИспользованы промокоды:'
+        '\n'
+        '\n📍 <u>QW3GY4X</u> - заказ №32-2'
+        '\n📍 <u>GJ46J2FS</u> - заказ №22-3'
+    )
+    assert view.as_text() == expected
