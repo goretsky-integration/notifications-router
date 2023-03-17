@@ -129,5 +129,9 @@ EVENTS_STRATEGY = {
     'PROMO_CODES_USAGE': {
         'model': models.UnitUsedPromoCodes,
         'view': views.UnitUsedPromoCodes,
+    },
+    'LATE_DELIVERY_VOUCHERS': {
+        'model': models.UnitLateDeliveryVouchers,
+        'view': views.UnitLateDeliveryVouchers,
     }
 }
