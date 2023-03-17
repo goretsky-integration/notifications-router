@@ -16,6 +16,7 @@ class EventFromMessageQueueType(str, Enum):
     CHEATED_PHONE_NUMBERS = 'CHEATED_PHONE_NUMBERS'
     WRITE_OFFS = 'WRITE_OFFS'
     PROMO_CODES_USAGE = 'PROMO_CODES_USAGE'
+    LATE_DELIVERY_VOUCHERS = 'LATE_DELIVERY_VOUCHERS'
 
 
 class EventFromMessageQueue(BaseModel):
@@ -137,6 +138,11 @@ class UsedPromoCode(BaseModel):
 class UnitUsedPromoCodes(BaseModel):
     unit_name: str
     promo_codes: list[UsedPromoCode]
+
+
+class UnitLateDeliveryVouchers(BaseModel):
+    unit_name: str
+    order_numbers: tuple[str, ...]
 
 
 EventPayload: TypeAlias = (

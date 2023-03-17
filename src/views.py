@@ -252,3 +252,18 @@ class UnitUsedPromoCodes:
         for promo_code in self.__unit_used_promo_codes.promo_codes:
             lines.append(f'📍 <u>{promo_code.promo_code}</u> - заказ №{promo_code.order_no}')
         return '\n'.join(lines)
+
+
+class UnitLateDeliveryVouchers:
+
+    def __init__(self, unit_late_delivery_vouchers: models.UnitLateDeliveryVouchers):
+        self.__unit_late_delivery_vouchers = unit_late_delivery_vouchers
+
+    def as_text(self) -> str:
+        lines: list[str] = [
+            f'<b>{self.__unit_late_delivery_vouchers.unit_name}:</b>',
+            'Выданы сертификаты за опоздание:\n',
+        ]
+        for order_number in self.__unit_late_delivery_vouchers.order_numbers:
+            lines.append(f'📍 Заказ <b>№{order_number}</b>')
+        return '\n'.join(lines)
