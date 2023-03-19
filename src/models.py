@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum
 from typing import TypedDict, TypeAlias
 
@@ -88,14 +89,18 @@ class ReportFromMongoDB(TypedDict):
     unit_ids: list[int]
 
 
-class OrderByUUID(BaseModel):
-    unit_name: str
-    created_at: datetime
+class CanceledOrder(BaseModel):
+    id: uuid.UUID
+    sold_at: datetime
     canceled_at: datetime
     number: str
-    type: str
-    price: int
-    uuid: uuid.UUID
+    sales_channel_name: str
+    price: Decimal
+
+
+class UnitCanceledOrders(BaseModel):
+    unit_name: str
+    canceled_orders: tuple[CanceledOrder, ...]
 
 
 class StopsAndResumes(BaseModel):
@@ -146,8 +151,7 @@ class UnitLateDeliveryVouchers(BaseModel):
 
 
 EventPayload: TypeAlias = (
-        OrderByUUID
-        | StopSaleByStreets
+        StopSaleByStreets
         | StopSaleByChannels
         | StopSaleBySectors
         | StopSaleByIngredients

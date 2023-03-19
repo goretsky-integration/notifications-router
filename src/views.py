@@ -1,12 +1,13 @@
 import collections
 from datetime import timedelta, datetime
+from decimal import Decimal
 from typing import Protocol, Generic, TypeVar, Callable, Iterable
 
 import humanize
 
 import models
 import utils
-from text_utils import abbreviate_time_units
+from text_utils import abbreviate_time_units, intgaps
 
 humanize.i18n.activate("ru_RU")
 
@@ -57,11 +58,13 @@ class StopSale(Generic[SS]):
 
     @property
     def humanized_order_duration(self) -> str:
-        return humanize.precisedelta(self.stop_duration, suppress=['days'], minimum_unit='minutes', format='%0.0f')
+        return humanize.precisedelta(self.stop_duration, suppress=['days'],
+                                     minimum_unit='minutes', format='%0.0f')
 
     def as_text(self):
-        first_line = (f'{self._stop_sale.unit_name} в стопе {self.humanized_order_duration}'
-                      f' (с {self._stop_sale.started_at:%H:%M})')
+        first_line = (
+            f'{self._stop_sale.unit_name} в стопе {self.humanized_order_duration}'
+            f' (с {self._stop_sale.started_at:%H:%M})')
         if self.is_urgent:
             first_line = '❗️ ' + first_line + ' ❗️'
         return first_line
@@ -113,31 +116,53 @@ class StopSaleByStreets(StopSale[models.StopSaleByStreets]):
 
 class CanceledOrder:
 
-    def __init__(self, canceled_order: models.OrderByUUID):
-        self._canceled_order = canceled_order
-
-    @property
-    def order_duration(self) -> timedelta:
-        return self._canceled_order.canceled_at - self._canceled_order.created_at
-
-    @property
-    def humanized_order_duration(self) -> str:
-        return humanize.precisedelta(self.order_duration, suppress=['days'], minimum_unit='minutes', format='%0.0f')
+    def __init__(self, canceled_order: models.CanceledOrder):
+        self.__canceled_order = canceled_order
 
     @property
     def order_url(self) -> str:
-        return ('https://shiftmanager.dodopizza.ru/Managment/ShiftManagment/Order?'
-                f'orderUUId={self._canceled_order.uuid.hex}')
+        return (
+            'https://shiftmanager.dodopizza.ru/Managment/ShiftManagment/Order?'
+            f'orderUUId={self.__canceled_order.id.hex}'
+        )
 
     def as_text(self) -> str:
         return (
-            f'{self._canceled_order.unit_name} отменён заказ'
-            f' <a href="{self.order_url}">№{self._canceled_order.number}</a> в {self._canceled_order.price}₽\n'
-            f'Тип заказа: {self._canceled_order.type}\n'
-            f'Заказ сделан в {self._canceled_order.created_at:%H:%M},'
-            f' отменён в {self._canceled_order.canceled_at:%H:%M}\n'
-            f'Между заказом и отменой прошло {self.humanized_order_duration}'
+            f'Заказ <a href="{self.order_url}">'
+            f'№{self.__canceled_order.number}</a>'
+            f' {self.__canceled_order.price}₽\n'
+            f'Тип заказа: {self.__canceled_order.sales_channel_name}'
         )
+
+
+class UnitCanceledOrders:
+
+    def __init__(self, unit_canceled_orders: models.UnitCanceledOrders):
+        self.__unit_canceled_orders = unit_canceled_orders
+
+    def calculate_total_price(self) -> Decimal:
+        return sum(canceled_order.price for canceled_order
+                   in self.__unit_canceled_orders.canceled_orders)
+
+    def as_text(self) -> str:
+        lines = [
+            f'<b>Отчёт по отменам {self.__unit_canceled_orders.unit_name}:</b>',
+        ]
+        sorted_canceled_orders = sorted(
+            self.__unit_canceled_orders.canceled_orders,
+            key=lambda canceled_order: (
+                canceled_order.sold_at,
+                canceled_order.canceled_at,
+            )
+        )
+        for canceled_order in sorted_canceled_orders:
+            canceled_order_text = CanceledOrder(canceled_order).as_text()
+            lines.append(f'\n{canceled_order_text}')
+
+        total_price = int(self.calculate_total_price())
+
+        lines.append(f'\n<b>Итого: {intgaps(total_price)}₽</b>')
+        return '\n'.join(lines)
 
 
 class StopsAndResumes:
@@ -151,7 +176,8 @@ class StopsAndResumes:
 
     @property
     def title(self) -> str:
-        humanized_title = self.type_to_title.get(self._stops_and_resumes.type, self._stops_and_resumes.type)
+        humanized_title = self.type_to_title.get(self._stops_and_resumes.type,
+                                                 self._stops_and_resumes.type)
         return f'<b>{humanized_title} продаж</b>'
 
     @property
@@ -170,7 +196,8 @@ class StopsAndResumes:
 
 class StopSalesByOtherIngredients:
 
-    def __init__(self, stop_sales_by_other_ingredients: models.StopSalesByOtherIngredients):
+    def __init__(self,
+                 stop_sales_by_other_ingredients: models.StopSalesByOtherIngredients):
         self._stop_sales_by_other_ingredients = stop_sales_by_other_ingredients
 
     @staticmethod
@@ -179,32 +206,45 @@ class StopSalesByOtherIngredients:
 
     @staticmethod
     def get_humanized_stop_duration(stopped_at: datetime) -> str:
-        stop_duration = StopSalesByOtherIngredients.get_stop_duration(stopped_at)
+        stop_duration = StopSalesByOtherIngredients.get_stop_duration(
+            stopped_at)
         if stop_duration >= DAY_IN_SECONDS:
-            kwargs = {'format': '%0.0f', 'minimum_unit': 'days', 'suppress': ['months']}
+            kwargs = {
+                'format': '%0.0f', 'minimum_unit': 'days',
+                'suppress': ['months']
+            }
         elif stop_duration >= HOUR_IN_SECONDS:
             kwargs = {'format': '%0.0f', 'minimum_unit': 'hours'}
         else:
             kwargs = {'format': '%0.0f', 'minimum_unit': 'minutes'}
-        return abbreviate_time_units(humanize.precisedelta(stop_duration, **kwargs))
+        return abbreviate_time_units(
+            humanize.precisedelta(stop_duration, **kwargs))
 
     @staticmethod
-    def group_by_reason(ingredients: Iterable[models.IngredientStop]) -> dict[str, list[models.IngredientStop]]:
-        stop_reason_to_ingredients: dict[str, list[models.IngredientStop]] = collections.defaultdict(list)
+    def group_by_reason(ingredients: Iterable[models.IngredientStop]) -> dict[
+        str, list[models.IngredientStop]]:
+        stop_reason_to_ingredients: dict[
+            str, list[models.IngredientStop]] = collections.defaultdict(list)
         for ingredient in ingredients:
-            ingredients_by_stop_reason = stop_reason_to_ingredients[ingredient.reason]
+            ingredients_by_stop_reason = stop_reason_to_ingredients[
+                ingredient.reason]
             ingredients_by_stop_reason.append(ingredient)
         return stop_reason_to_ingredients
 
     def as_text(self) -> str:
         lines = [f'<b>{self._stop_sales_by_other_ingredients.unit_name}</b>']
         if not self._stop_sales_by_other_ingredients.ingredients:
-            lines.append('<b>Стопов пока нет! Молодцы. Ваши Клиенты довольны</b>')
-        for reason, ingredients in self.group_by_reason(self._stop_sales_by_other_ingredients.ingredients).items():
+            lines.append(
+                '<b>Стопов пока нет! Молодцы. Ваши Клиенты довольны</b>')
+        for reason, ingredients in self.group_by_reason(
+                self._stop_sales_by_other_ingredients.ingredients).items():
             lines.append(f'\n<b>{reason}:</b>')
-            for ingredient in sorted(ingredients, key=lambda ingredient: ingredient.started_at, reverse=True):
-                humanized_stop_duration = self.get_humanized_stop_duration(ingredient.started_at)
-                lines.append(f'📍 {ingredient.name} - <b><u>{humanized_stop_duration}</u></b>')
+            for ingredient in sorted(ingredients, key=lambda
+                    ingredient: ingredient.started_at, reverse=True):
+                humanized_stop_duration = self.get_humanized_stop_duration(
+                    ingredient.started_at)
+                lines.append(
+                    f'📍 {ingredient.name} - <b><u>{humanized_stop_duration}</u></b>')
         return '\n'.join(lines)
 
 
@@ -215,8 +255,9 @@ class StocksBalance:
 
     def as_text(self) -> str:
         lines = [f'<b>{self._stocks_balance.unit_name}</b>']
-        lines.append('❗️ <b>На сегодня не хватит</b> ❗️' if self._stocks_balance.stocks_balance
-                     else '<b>На сегодня всего достаточно</b>')
+        lines.append(
+            '❗️ <b>На сегодня не хватит</b> ❗️' if self._stocks_balance.stocks_balance
+            else '<b>На сегодня всего достаточно</b>')
         for stock_balance in self._stocks_balance.stocks_balance:
             lines.append(f'📍 {stock_balance.ingredient_name} - остаток'
                          f' <b><u>{stock_balance.stocks_count} {stock_balance.stocks_unit}</u></b>')
@@ -235,8 +276,9 @@ class WriteOff:
         self._write_off = write_off
 
     def as_text(self) -> str:
-        return f'<b>❗️ {self._write_off.unit_name} ❗️</b>\n' + self.write_off_event_types_map[
-            self._write_off.event_type]
+        return f'<b>❗️ {self._write_off.unit_name} ❗️</b>\n' + \
+            self.write_off_event_types_map[
+                self._write_off.event_type]
 
 
 class UnitUsedPromoCodes:
@@ -250,13 +292,17 @@ class UnitUsedPromoCodes:
             'Использованы промокоды:\n',
         ]
         for promo_code in self.__unit_used_promo_codes.promo_codes:
-            lines.append(f'📍 <u>{promo_code.promo_code}</u> - заказ №{promo_code.order_no}')
+            lines.append(
+                f'📍 <u>{promo_code.promo_code}</u> - заказ №{promo_code.order_no}')
         return '\n'.join(lines)
 
 
 class UnitLateDeliveryVouchers:
 
-    def __init__(self, unit_late_delivery_vouchers: models.UnitLateDeliveryVouchers):
+    def __init__(
+            self,
+            unit_late_delivery_vouchers: models.UnitLateDeliveryVouchers,
+    ):
         self.__unit_late_delivery_vouchers = unit_late_delivery_vouchers
 
     def as_text(self) -> str:
