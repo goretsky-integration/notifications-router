@@ -26,3 +26,21 @@ def abbreviate_time_units(text: str) -> str:
                 word = abbreviation
         new_word += ' ' + word
     return new_word
+
+
+def intgaps(number: int | float) -> str:
+    """Make big numbers more readable.
+
+    Examples:
+        >>> intgaps(43466456)
+        '43 466 456'
+        >>> intgaps(5435.5)
+        '5 435.5'
+
+    Args:
+        number: Any number.
+
+    Returns:
+        Readable big digit.
+    """
+    return f'{number:_}'.replace('_', ' ')

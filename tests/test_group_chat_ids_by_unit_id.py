@@ -1,7 +1,6 @@
-import pytest
 from pydantic import parse_obj_as
 
-from models import ChatToRetranslate
+from models import ReportRoute
 from units_identify import group_chat_ids_by_unit_id
 
 
@@ -29,4 +28,4 @@ def test_group_chat_ids_by_unit_ids():
         641: {645645, 434234},
         865: {645645, 5435436}
     }
-    assert group_chat_ids_by_unit_id(parse_obj_as(list[ChatToRetranslate], data)) == expected
+    assert group_chat_ids_by_unit_id(parse_obj_as(list[ReportRoute], data)) == expected

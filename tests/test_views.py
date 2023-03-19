@@ -1,3 +1,7 @@
+import datetime
+from uuid import UUID
+from decimal import Decimal
+
 import pytest
 
 import models
@@ -24,25 +28,40 @@ def test_bonus_system_fraud_text_report():
     assert views.CheatedOrders(bonus_system_fraud).as_text() == expected
 
 
-def test_canceled_order():
-    canceled_order = models.OrderByUUID(
-        unit_name='Москва 4-6',
-        uuid='c4db1e0f-8e14-405e-91b5-9abf983d7e7e',
-        price=534,
-        number='23 - 4',
-        type='Доставка',
-        created_at='2022-06-22T00:00:00',
-        receipt_printed_at='2022-06-23T12:12:12',
-    )
+def test_canceled_order_view(canceled_order):
     expected = (
-        'Москва 4-6 отменён заказ <a href="https://shiftmanager.dodopizza.ru'
-        '/Managment/ShiftManagment/Order?orderUUId=c4db1e0f8e14405e91b59abf983d7e7e">№23 - 4</a> в 534₽\n'
-        'Тип заказа: Доставка\n'
-        'Заказ сделан в 00:00,'
-        f' отменён в 12:12\n'
-        f'Между заказом и отменой прошло 36 часов и 12 минут'
+        'Заказ <a href="https://shiftmanager.dodopizza.ru/Managment/'
+        f'ShiftManagment/Order?orderUUId={canceled_order.id.hex}">'
+        f'№{canceled_order.number}</a>'
+        f' {canceled_order.price}₽\n'
+        f'Тип заказа: {canceled_order.sales_channel_name}'
     )
     assert views.CanceledOrder(canceled_order).as_text() == expected
+
+
+def test_unit_canceled_orders_view(canceled_order):
+    unit_canceled_orders = models.UnitCanceledOrders(
+        unit_name='Москва 1-1',
+        canceled_orders=(canceled_order, canceled_order),
+    )
+    expected = (
+        f'<b>Отчёт по отменам Москва 1-1:</b>\n'
+        '\n'
+        'Заказ <a href="https://shiftmanager.dodopizza.ru/Managment/'
+        f'ShiftManagment/Order?orderUUId={canceled_order.id.hex}">'
+        f'№{canceled_order.number}</a>'
+        f' {canceled_order.price}₽\n'
+        f'Тип заказа: {canceled_order.sales_channel_name}\n'
+        '\n'
+        'Заказ <a href="https://shiftmanager.dodopizza.ru/Managment/'
+        f'ShiftManagment/Order?orderUUId={canceled_order.id.hex}">'
+        f'№{canceled_order.number}</a>'
+        f' {canceled_order.price}₽\n'
+        f'Тип заказа: {canceled_order.sales_channel_name}\n'
+        '\n'
+        f'Итого 41₽'
+    )
+    assert views.UnitCanceledOrders(unit_canceled_orders).as_text() == expected
 
 
 def test_stop_sales_by_streets():
@@ -192,7 +211,8 @@ def test_stop_sales_by_other_ingredients():
         unit_name='Москва 4-1',
         ingredients=stopped_ingredients,
     )
-    views.StopSalesByOtherIngredients.get_humanized_stop_duration = lambda *args: '15 минут'
+    views.StopSalesByOtherIngredients.get_humanized_stop_duration = lambda \
+            *args: '15 минут'
     expected = (
         '<b>Москва 4-1</b>'
         '\n\n'
@@ -206,7 +226,8 @@ def test_stop_sales_by_other_ingredients():
         '\n'
         '📍 Тесто 55 - <b><u>15 минут</u></b>'
     )
-    assert views.StopSalesByOtherIngredients(stop_sales_by_other_ingredients).as_text() == expected
+    assert views.StopSalesByOtherIngredients(
+        stop_sales_by_other_ingredients).as_text() == expected
 
 
 @pytest.mark.parametrize(
