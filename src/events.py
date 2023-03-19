@@ -90,8 +90,8 @@ class Strategy(TypedDict):
 
 EVENTS_STRATEGY = {
     'CANCELED_ORDERS': {
-        'model': models.OrderByUUID,
-        'view': views.CanceledOrder,
+        'model': models.UnitCanceledOrders,
+        'view': views.UnitCanceledOrders,
     },
     'CHEATED_PHONE_NUMBERS': {
         'model': models.CheatedOrders,
