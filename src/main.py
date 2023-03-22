@@ -1,10 +1,15 @@
 import pathlib
 
+import httpx
 from pika import URLParameters
 from loguru import logger
 
 from config import load_config
-import consumer
+from consumer import (
+    closing_rabbitmq_connection,
+    closing_rabbitmq_channel,
+    start_consuming,
+)
 from db_api import DatabaseAPI
 from events import EventHandler, EventExpirationFilter
 from telegram import TelegramSender
@@ -18,16 +23,24 @@ def main():
     loglevel = 'DEBUG' if config.debug else 'INFO'
     logger.add(logfile_path, level=loglevel)
 
-    database_api = DatabaseAPI(config.database_api_url)
-
     telegram_sender = TelegramSender(config.telegram_bot_token)
-    event_expiration_filter = EventExpirationFilter(max_lifetime_in_seconds=config.event_max_lifetime_in_seconds)
-    event_handler = EventHandler(telegram_sender, database_api, event_expiration_filter)
+    event_expiration_filter = EventExpirationFilter(
+        max_lifetime_in_seconds=config.event_max_lifetime_in_seconds)
 
-    rabbitmq_connection_parameters = URLParameters(config.rabbitmq_url)
-    with consumer.closing_rabbitmq_connection(rabbitmq_connection_parameters) as rabbitmq_connection:
-        with consumer.closing_rabbitmq_channel(rabbitmq_connection) as rabbitmq_channel:
-            consumer.start_consuming(rabbitmq_channel, on_event=event_handler)
+    url_parameters = URLParameters(config.rabbitmq_url)
+
+    with (
+        httpx.Client(base_url=config.database_api_url) as http_client,
+        closing_rabbitmq_connection(url_parameters) as rabbitmq_connection,
+        closing_rabbitmq_channel(rabbitmq_connection) as rabbitmq_channel
+    ):
+        database_api = DatabaseAPI(http_client)
+        event_handler = EventHandler(
+            telegram_sender,
+            database_api,
+            event_expiration_filter,
+        )
+        start_consuming(rabbitmq_channel, on_event=event_handler)
 
 
 if __name__ == '__main__':

@@ -18,6 +18,7 @@ class EventFromMessageQueueType(str, Enum):
     WRITE_OFFS = 'WRITE_OFFS'
     PROMO_CODES_USAGE = 'PROMO_CODES_USAGE'
     LATE_DELIVERY_VOUCHERS = 'LATE_DELIVERY_VOUCHERS'
+    STOCKS_BALANCE = 'STOCKS_BALANCE'
 
 
 class EventFromMessageQueue(BaseModel):
@@ -25,11 +26,6 @@ class EventFromMessageQueue(BaseModel):
     unit_id: PositiveInt
     payload: dict
     created_at: datetime
-
-
-class ReportRoute(BaseModel):
-    chat_id: int
-    unit_ids: tuple[int, ...]
 
 
 class RawEvent(TypedDict):
@@ -82,11 +78,6 @@ class StopSaleByStreets(StopSale):
 
 class StopSaleBySectors(StopSale):
     sector_name: str
-
-
-class ReportFromMongoDB(TypedDict):
-    chat_id: int
-    unit_ids: list[int]
 
 
 class CanceledOrder(BaseModel):

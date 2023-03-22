@@ -12,6 +12,7 @@ from loguru import logger
 __all__ = (
     'closing_rabbitmq_connection',
     'closing_rabbitmq_channel',
+    'start_consuming',
 )
 
 

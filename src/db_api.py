@@ -1,19 +1,21 @@
 import httpx
-from pydantic import parse_obj_as
-
-import models
 
 __all__ = ('DatabaseAPI',)
 
 
 class DatabaseAPI:
-    __slots__ = ('__base_url',)
+    __slots__ = ('__http_client',)
 
-    def __init__(self, base_url: str):
-        self.__base_url = base_url.rstrip('/')
+    def __init__(self, http_client: httpx.Client):
+        self.__http_client = http_client
 
-    def get_report_routes(self, report_type: str) -> list[models.ReportRoute]:
-        request_query_params = {'report_type': report_type}
-        url = f'{self.__base_url}/reports/'
-        response = httpx.get(url, params=request_query_params)
-        return parse_obj_as(list[models.ReportRoute], response.json())
+    def get_telegram_chats(
+            self,
+            *,
+            unit_id: int,
+            report_type: str,
+    ) -> list[int]:
+        request_query_params = {'unit_id': unit_id, 'report_type': report_type}
+        url = '/reports/telegram-chats/'
+        response = self.__http_client.get(url, params=request_query_params)
+        return response.json()
