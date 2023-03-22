@@ -28,11 +28,6 @@ class EventFromMessageQueue(BaseModel):
     created_at: datetime
 
 
-class ReportRoute(BaseModel):
-    chat_id: int
-    unit_ids: tuple[int, ...]
-
-
 class RawEvent(TypedDict):
     type: str
     unit_id: int
@@ -83,11 +78,6 @@ class StopSaleByStreets(StopSale):
 
 class StopSaleBySectors(StopSale):
     sector_name: str
-
-
-class ReportFromMongoDB(TypedDict):
-    chat_id: int
-    unit_ids: list[int]
 
 
 class CanceledOrder(BaseModel):
