@@ -18,6 +18,7 @@ class EventFromMessageQueueType(str, Enum):
     WRITE_OFFS = 'WRITE_OFFS'
     PROMO_CODES_USAGE = 'PROMO_CODES_USAGE'
     LATE_DELIVERY_VOUCHERS = 'LATE_DELIVERY_VOUCHERS'
+    STOCKS_BALANCE = 'STOCKS_BALANCE'
 
 
 class EventFromMessageQueue(BaseModel):
