@@ -59,7 +59,7 @@ def test_unit_canceled_orders_view(canceled_order):
         f' {canceled_order.price}₽\n'
         f'Тип заказа: {canceled_order.sales_channel_name}\n'
         '\n'
-        f'Итого 41₽'
+        f'<b>Итого: 41₽</b>'
     )
     assert views.UnitCanceledOrders(unit_canceled_orders).as_text() == expected
 

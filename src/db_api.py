@@ -16,6 +16,15 @@ class DatabaseAPI:
             report_type: str,
     ) -> list[int]:
         request_query_params = {'unit_id': unit_id, 'report_type': report_type}
-        url = '/reports/telegram-chats/'
-        response = self.__http_client.get(url, params=request_query_params)
-        return response.json()
+        url = '/report-routes/telegram-chats/'
+
+        chat_ids = []
+        while True:
+            response = self.__http_client.get(url, params=request_query_params)
+            response_data = response.json()
+
+            chat_ids += response_data['chat_ids']
+
+            if response_data['is_end_of_list_reached']:
+                break
+        return chat_ids
