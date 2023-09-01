@@ -1,5 +1,6 @@
 import factory
 
+from factories.common import generate_unit_name
 from models import (
     LossesAndExcessesRevision,
     LossesAndExcessesRevisionRevisionSummaryUnit,
@@ -56,7 +57,7 @@ class LossesAndExcessesRevisionFactory(factory.Factory):
     class Meta:
         model = LossesAndExcessesRevision
 
-    unit_name = factory.Sequence(lambda n: f'Москва 4-{n}')
+    unit_name = factory.LazyFunction(generate_unit_name)
     summary = factory.SubFactory(
         LossesAndExcessesRevisionSummaryFactory,
     )
