@@ -133,5 +133,9 @@ EVENTS_STRATEGY = {
     'LATE_DELIVERY_VOUCHERS': {
         'model': models.UnitLateDeliveryVouchers,
         'view': views.UnitLateDeliveryVouchers,
+    },
+    'LOSSES_AND_EXCESSES': {
+        'model': models.LossesAndExcessesRevision,
+        'view': views.LossesAndExcessesRevisionView,
     }
 }

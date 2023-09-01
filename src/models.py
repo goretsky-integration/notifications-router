@@ -19,6 +19,7 @@ class EventFromMessageQueueType(str, Enum):
     PROMO_CODES_USAGE = 'PROMO_CODES_USAGE'
     LATE_DELIVERY_VOUCHERS = 'LATE_DELIVERY_VOUCHERS'
     STOCKS_BALANCE = 'STOCKS_BALANCE'
+    LOSSES_AND_EXCESSES = 'LOSSES_AND_EXCESSES'
 
 
 class EventFromMessageQueue(BaseModel):
@@ -139,6 +140,23 @@ class UnitUsedPromoCodes(BaseModel):
 class UnitLateDeliveryVouchers(BaseModel):
     unit_name: str
     order_numbers: tuple[str, ...]
+
+
+class LossesAndExcessesRevisionRevisionSummaryUnit(BaseModel):
+    percent_of_revenue: float
+    amount: float
+
+
+class LossesAndExcessesRevisionSummary(BaseModel):
+    total_loss: LossesAndExcessesRevisionRevisionSummaryUnit
+    unaccounted_losses: LossesAndExcessesRevisionRevisionSummaryUnit
+    write_offs: LossesAndExcessesRevisionRevisionSummaryUnit
+    total_excess: LossesAndExcessesRevisionRevisionSummaryUnit
+
+
+class LossesAndExcessesRevision(BaseModel):
+    unit_name: str
+    summary: LossesAndExcessesRevisionSummary
 
 
 EventPayload: TypeAlias = (

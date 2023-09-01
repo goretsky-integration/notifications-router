@@ -313,3 +313,24 @@ class UnitLateDeliveryVouchers:
         for order_number in self.__unit_late_delivery_vouchers.order_numbers:
             lines.append(f'📍 Заказ <b>№{order_number}</b>')
         return '\n'.join(lines)
+
+
+class LossesAndExcessesRevisionView:
+
+    def __init__(self, revision: models.LossesAndExcessesRevision):
+        self.__revision = revision
+
+    def as_text(self) -> str:
+        return (
+            f'<b>{self.__revision.unit_name}</b>\n'
+            f'Итого потери -'
+            f' {self.__revision.summary.total_loss.percent_of_revenue}%'
+            f' / {self.__revision.summary.total_loss.amount} руб\n'
+            f'Неучтённые потери -'
+            f' {self.__revision.summary.unaccounted_losses.percent_of_revenue}%'
+            f' / {self.__revision.summary.unaccounted_losses.amount} руб\n'
+            f'Списания - {self.__revision.summary.write_offs.percent_of_revenue}'
+            f'% / {self.__revision.summary.write_offs.amount} руб\n'
+            f'Избыток - {self.__revision.summary.total_excess.percent_of_revenue}'
+            f'% / {self.__revision.summary.total_excess.amount} руб'
+        )

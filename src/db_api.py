@@ -15,9 +15,15 @@ class DatabaseAPI:
             unit_id: int,
             report_type: str,
     ) -> list[int]:
-        request_query_params = {'unit_id': unit_id, 'report_type': report_type}
-        url = '/report-routes/telegram-chats/'
+        url = f'/report-types/names/{report_type}/'
+        response = self.__http_client.get(url)
+        report_type = response.json()
 
+        url = '/report-routes/telegram-chats/'
+        request_query_params = {
+            'unit_id': unit_id,
+            'report_type_id': report_type['id']
+        }
         chat_ids = []
         while True:
             response = self.__http_client.get(url, params=request_query_params)
