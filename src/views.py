@@ -34,7 +34,7 @@ class CheatedOrders:
 
     def as_text(self) -> str:
         lines = (
-            '<b>❗️ МОШЕННИЧЕСТВО ❗️️',
+            '<b>❗️ ПОДОЗРИТЕЛЬНО 🤨 ❗️️',
             f'{self._cheated_orders.unit_name}</b>',
             f'Номер: {self._cheated_orders.phone_number.removesuffix(".0")}',
             '\n'.join(f'{order.created_at:%H:%M} - <b>заказ №{order.number}</b>'
