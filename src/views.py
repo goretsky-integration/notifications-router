@@ -323,10 +323,10 @@ class LossesAndExcessesRevisionView:
     def as_text(self) -> str:
         return (
             f'<b>{self.__revision.unit_name}</b>\n'
-            f'Итого потери -'
+            f'Потери -'
             f' {self.__revision.summary.total_loss.percent_of_revenue}%'
             f' / {self.__revision.summary.total_loss.amount} руб\n'
-            f'Неучтённые потери -'
+            f'Неучтённые -'
             f' {self.__revision.summary.unaccounted_losses.percent_of_revenue}%'
             f' / {self.__revision.summary.unaccounted_losses.amount} руб\n'
             f'Списания - {self.__revision.summary.write_offs.percent_of_revenue}'
