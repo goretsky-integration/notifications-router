@@ -142,3 +142,4 @@ cython_debug/
 
 # configs
 config.ini
+config.toml
