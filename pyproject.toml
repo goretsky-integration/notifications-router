@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "dodo__notifier-service"
-version = "0.1.0"
+name = "notifications-router"
+version = "1.0.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Eldos <eldos.baktybekov@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
