@@ -1,0 +1,5 @@
+[telegram]
+bot_token = "token"
+
+[redis]
+url = "url"
