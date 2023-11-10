@@ -11,6 +11,7 @@ pika = "^1.2.1"
 loguru = "^0.6.0"
 pydantic = "^1.9.1"
 humanize = "^4.2.3"
+redis = "^5.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
