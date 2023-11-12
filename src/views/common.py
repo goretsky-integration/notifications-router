@@ -5,7 +5,19 @@ from typing import Protocol, TypeVar
 
 import humanize
 
-from models import SalesChannel, CanceledOrder
+from models import (
+    SalesChannel,
+    CanceledOrder,
+    UnitAwaitingOrders,
+    UnitLateDeliveryVouchersStatistics,
+    UnitBonusSystemUsage,
+    UnitAverageCookingTime,
+    UnitDeliveryProductivity,
+    UnitAverageDeliverySpeedStatistics,
+    UnitHeatedShelfTime, UnitKitchenProductivity,
+    UnitProductivityBalanceStatistics,
+)
+from text_utils import abbreviate_time_units
 
 __all__ = (
     'RenderFunction',
@@ -18,9 +30,16 @@ __all__ = (
     'group_by_reason',
     'sort_by_started_at',
     'compute_stop_sale_duration',
+    'sort_awaiting_orders',
+    'sort_late_delivery_vouchers',
+    'sort_bonus_system_usage_statistics',
+    'sort_cooking_time_statistics',
+    'sort_delivery_productivity',
+    'sort_delivery_speed',
+    'sort_heated_shelf_time',
+    'sort_kitchen_productivity',
+    'sort_productivity_balance',
 )
-
-from text_utils import abbreviate_time_units
 
 RenderFunction = Callable[[...], str]
 
@@ -144,4 +163,101 @@ def humanize_stop_sale_duration(duration: timedelta) -> str:
 
     return abbreviate_time_units(
         humanize.precisedelta(duration, **kwargs)
+    )
+
+
+def sort_awaiting_orders(
+        units_awaiting_orders: Iterable[UnitAwaitingOrders],
+) -> list[UnitAwaitingOrders]:
+    return sorted(
+        units_awaiting_orders,
+        reverse=True,
+        key=lambda unit_awaiting_orders: (
+            unit_awaiting_orders.heated_shelf_orders_count,
+            unit_awaiting_orders.couriers_in_queue_count,
+            unit_awaiting_orders.couriers_on_shift_count
+        ),
+    )
+
+
+def sort_late_delivery_vouchers(
+        units_late_delivery_vouchers: Iterable[
+            UnitLateDeliveryVouchersStatistics],
+) -> list[UnitLateDeliveryVouchersStatistics]:
+    return sorted(
+        units_late_delivery_vouchers,
+        reverse=True,
+        key=lambda unit: (
+            unit.certificates_count_today,
+            unit.certificates_count_week_before,
+        ),
+    )
+
+
+def sort_bonus_system_usage_statistics(
+        units_bonus_system_usage: Iterable[UnitBonusSystemUsage],
+) -> list[UnitBonusSystemUsage]:
+    return sorted(
+        units_bonus_system_usage,
+        reverse=True,
+        key=lambda unit: unit.orders_with_phone_numbers_percent,
+    )
+
+
+def sort_cooking_time_statistics(
+        units_cooking_time: Iterable[UnitAverageCookingTime],
+) -> list[UnitAverageCookingTime]:
+    return sorted(
+        units_cooking_time,
+        key=lambda unit: unit.cooking_time_in_seconds,
+    )
+
+
+def sort_delivery_productivity(
+        units_delivery_productivity: Iterable[UnitDeliveryProductivity],
+) -> list[UnitDeliveryProductivity]:
+    return sorted(
+        units_delivery_productivity,
+        reverse=True,
+        key=lambda unit: unit.orders_per_courier_labour_hour_today,
+    )
+
+
+def sort_delivery_speed(
+        units_delivery_speed: Iterable[UnitAverageDeliverySpeedStatistics],
+) -> list[UnitAverageDeliverySpeedStatistics]:
+    return sorted(
+        units_delivery_speed,
+        key=lambda unit: unit.delivery_order_fulfillment_time_in_seconds,
+    )
+
+
+def sort_heated_shelf_time(
+        units_heated_shelf_time: Iterable[UnitHeatedShelfTime],
+) -> list[UnitHeatedShelfTime]:
+    return sorted(
+        units_heated_shelf_time,
+        reverse=True,
+        key=lambda
+            unit_statistics: unit_statistics.average_heated_shelf_time_in_seconds,
+    )
+
+
+def sort_kitchen_productivity(
+        units_kitchen_productivity: Iterable[UnitKitchenProductivity],
+) -> list[UnitKitchenProductivity]:
+    return sorted(
+        units_kitchen_productivity,
+        key=lambda unit: unit.sales_per_labor_hour_today,
+        reverse=True,
+    )
+
+
+def sort_productivity_balance(
+        units_productivity_balance: Iterable[UnitProductivityBalanceStatistics],
+) -> list[UnitProductivityBalanceStatistics]:
+    return sorted(
+        units_productivity_balance,
+        reverse=True,
+        key=lambda unit: unit.sales_per_labor_hour,
     )
