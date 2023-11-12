@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-__all__ = ('UnitLossesAndExcesses',)
+__all__ = ('UnitLossesAndExcesses', 'LossesAndExcesses')
 
 
 class LossesAndExcesses(BaseModel):
