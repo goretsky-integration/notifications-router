@@ -24,6 +24,8 @@ from text_utils import abbreviate_time_units
 
 RenderFunction = Callable[[...], str]
 
+humanize.i18n.activate('ru_RU')
+
 DAY_IN_SECONDS = 86400
 HOUR_IN_SECONDS = 3600
 
