@@ -11,7 +11,7 @@ write_off_event_types_map = {
 
 
 def render_write_off(write_off: WriteOff) -> str:
-    write_off_type_name = write_off_event_types_map[write_off.event_type]
+    write_off_type_name = write_off_event_types_map[write_off.type]
     return (
         f'<b>❗️ {write_off.unit_name} ❗️</b>\n'
         f'{write_off_type_name}'
