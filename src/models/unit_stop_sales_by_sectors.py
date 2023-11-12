@@ -2,7 +2,10 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-__all__ = ('UnitStopSalesBySectors',)
+__all__ = (
+    'UnitStopSalesBySectors',
+    'StopSaleBySector',
+)
 
 
 class StopSaleBySector(BaseModel):
