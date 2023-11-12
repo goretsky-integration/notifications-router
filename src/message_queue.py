@@ -4,8 +4,6 @@ from collections.abc import Generator
 from redis import Redis
 from redis.exceptions import ResponseError, ConnectionError
 
-from models import EventMessage
-
 __all__ = ('MessageQueueConsumer',)
 
 logger = logging.getLogger(__name__)
@@ -23,6 +21,7 @@ class MessageQueueConsumer:
         self.__redis_client = redis_client
         self.__stream_name = stream_name
         self.__consumer_group = consumer_group
+        self.__is_stream_initiated = False
 
     def __init_stream_group(self) -> None:
         """Create a consumer group for a stream if it doesn't exist yet."""
@@ -46,12 +45,26 @@ class MessageQueueConsumer:
             )
             exit(1)
 
+        self.__is_stream_initiated = True
+
+    def __enter__(self):
+        if not self.__is_stream_initiated:
+            self.__init_stream_group()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.__redis_client.xgroup_destroy(
+            name=self.__stream_name,
+            groupname=self.__consumer_group,
+        )
+
     def start_consuming(
             self,
             consumer_name: str,
-    ) -> Generator[EventMessage, None, None]:
+    ) -> Generator[dict, None, None]:
         """Start consuming messages from a stream."""
-        self.__init_stream_group()
+        if not self.__is_stream_initiated:
+            self.__init_stream_group()
 
         while True:
             response = self.__redis_client.xreadgroup(
@@ -72,4 +85,4 @@ class MessageQueueConsumer:
                         message_id,
                         data,
                     )
-                    yield EventMessage.model_validate_json(data['data'])
+                    yield data['data']

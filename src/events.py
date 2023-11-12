@@ -1,141 +1,114 @@
-import datetime
-import traceback
-from typing import Callable, TypedDict, Type
+import logging
+from typing import TypedDict, NoReturn
 
-from loguru import logger
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 import models
 import views
-from db_api import DatabaseAPI
+from message_queue import MessageQueueConsumer
+from models import EventType, Event
 from telegram import TelegramSender
 from text_utils import get_text_by_chunks
+from views import RenderFunction
 
 __all__ = (
-    'EventExpirationFilter',
-    'EventHandler',
-    'EVENTS_STRATEGY',
+    'handle_event',
+    'EVENT_STRATEGIES',
     'Strategy',
+    'start_events_handling',
 )
 
-
-class EventExpirationFilter:
-    """
-    Sometimes events stuck and aren't sending for a long time,
-    so some of them might not have relevance if they aren't delivered at time.
-    This filter prevents sending not relevant messages.
-    """
-    __slots__ = ('__max_lifetime_in_seconds', '__get_current_datetime')
-
-    def __init__(
-            self,
-            max_lifetime_in_seconds: int | float,
-            current_datetime_callback: Callable[[], datetime.datetime] = datetime.datetime.utcnow,
-    ):
-        self.__max_lifetime_in_seconds = max_lifetime_in_seconds
-        self.__get_current_datetime = current_datetime_callback
-        self.__validate_initial_arguments()
-
-    def __validate_initial_arguments(self):
-        if self.__max_lifetime_in_seconds < 1:
-            raise ValueError('Max lifetime must be at least 1 second')
-
-    def is_expired(self, event_created_at: datetime.datetime) -> bool:
-        event_lifetime = self.__get_current_datetime() - event_created_at
-        return event_lifetime.total_seconds() > self.__max_lifetime_in_seconds
+logger = logging.getLogger(__name__)
 
 
-class EventHandler:
+def handle_event(event: dict, telegram_sender: TelegramSender) -> None:
+    try:
+        event = Event.model_validate(event)
+    except ValidationError:
+        logger.exception('Event validation error')
+        return
 
-    def __init__(
-            self,
-            telegram_sender: TelegramSender,
-            database_api: DatabaseAPI,
-            event_expiration_filter: EventExpirationFilter,
-    ):
-        self.__telegram_sender = telegram_sender
-        self.__database_api = database_api
-        self.__event_expiration_filter = event_expiration_filter
+    try:
+        strategy = EVENT_STRATEGIES[event.type]
+    except KeyError:
+        logger.error(f'Unknown event type: {event.type}')
+        return
 
-    def __call__(self, event: models.RawEvent):
-        try:
-            event: models.EventFromMessageQueue = models.EventFromMessageQueue.parse_obj(event)
-        except ValidationError:
-            logger.error(f'Could not parse event: {traceback.format_exc()}')
-            return
+    render = strategy['render']
+    model_type = strategy['model']
 
-        if self.__event_expiration_filter.is_expired(event.created_at):
-            logger.info(f'Event {event} was expired')
-            return
+    try:
+        payload = model_type.model_validate(event.payload)
+    except ValidationError:
+        logger.exception('Payload validation error')
+        return
 
-        strategy = EVENTS_STRATEGY[event.type]
+    text = render(payload)
 
-        event_type = strategy.get('alias', event.type.name)
-        payload: models.EventPayload = strategy['model'].parse_obj(event.payload)
-        view = strategy['view'](payload)
-        chat_ids = self.__database_api.get_telegram_chats(
-            unit_id=event.unit_id,
-            report_type=event_type
+    for text_chunk in get_text_by_chunks(text):
+        telegram_sender.send_messages(
+            text=text_chunk,
+            chat_ids=event.chat_ids,
         )
-        logger.info(f'Sending event {event.type.name} by unit {event.unit_id} to chats {chat_ids}')
-        for text_chunk in get_text_by_chunks(view.as_text()):
-            self.__telegram_sender.send_messages(text_chunk, chat_ids)
 
 
 class Strategy(TypedDict):
-    model: Type[models.EventPayload]
-    view: Type[views.MessageView]
-    alias: str
+    model: type[BaseModel]
+    render: RenderFunction
 
 
-EVENTS_STRATEGY = {
-    'CANCELED_ORDERS': {
+EVENT_STRATEGIES: dict[EventType, Strategy] = {
+    EventType.CANCELED_ORDERS: {
         'model': models.UnitCanceledOrders,
-        'view': views.UnitCanceledOrders,
+        'render': views.render_canceled_orders,
     },
-    'CHEATED_PHONE_NUMBERS': {
-        'model': models.CheatedOrders,
-        'view': views.CheatedOrders,
+    EventType.INGREDIENT_STOCKS_BALANCE: {
+        'model': models.UnitIngredientStocksBalance,
+        'render': views.render_ingredient_stocks_balance,
     },
-    'INGREDIENTS_STOP_SALES': {
-        'model': models.StopSaleByIngredients,
-        'view': views.StopSaleByIngredients,
+    EventType.LOSSES_AND_EXCESSES: {
+        'model': models.UnitLossesAndExcesses,
+        'render': views.render_losses_and_excesses,
     },
-    'STREET_STOP_SALES': {
-        'model': models.StopSaleByStreets,
-        'view': views.StopSaleByStreets,
+    EventType.REVENUE_STATISTICS: {
+        'model': models.UnitsRevenueStatistics,
+        'render': views.render_revenue_statistics,
     },
-    'SECTOR_STOP_SALES': {
-        'model': models.StopSaleBySectors,
-        'view': views.StopSaleBySectors,
+    EventType.STOP_SALES_BY_INGREDIENTS: {
+        'model': models.UnitStopSalesByIngredients,
+        'render': views.render_stop_sale_by_ingredients,
     },
-    'PIZZERIA_STOP_SALES': {
-        'model': models.StopSaleByChannels,
-        'view': views.StopSaleByChannels,
+    EventType.STOP_SALES_BY_SALES_CHANNELS: {
+        'model': models.StopSaleBySalesChannels,
+        'render': views.render_stop_sale_by_sales_channels,
     },
-    'STOPS_AND_RESUMES': {
-        'model': models.StopSalesByOtherIngredients,
-        'view': views.StopSalesByOtherIngredients,
+    EventType.SUSPICIOUS_ORDERS_BY_PHONE_NUMBER: {
+        'model': models.UnitSuspiciousOrdersByPhoneNumber,
+        'render': views.render_suspicious_orders_by_phone_number,
     },
-    'STOCKS_BALANCE': {
-        'model': models.StocksBalance,
-        'view': views.StocksBalance,
-        'alias': 'STOPS_AND_RESUMES',
+    EventType.UNIT_STOP_SALES_BY_INGREDIENTS: {
+        'model': models.UnitStopSalesByIngredients,
+        'render': views.render_unit_stop_sales_by_ingredients,
     },
-    'WRITE_OFFS': {
+    EventType.UNIT_STOP_SALES_BY_SECTORS: {
+        'model': models.UnitStopSalesBySectors,
+        'render': views.render_unit_stop_sale_by_sectors,
+    },
+    EventType.WRITE_OFFS: {
         'model': models.WriteOff,
-        'view': views.WriteOff,
-    },
-    'PROMO_CODES_USAGE': {
-        'model': models.UnitUsedPromoCodes,
-        'view': views.UnitUsedPromoCodes,
-    },
-    'LATE_DELIVERY_VOUCHERS': {
-        'model': models.UnitLateDeliveryVouchers,
-        'view': views.UnitLateDeliveryVouchers,
-    },
-    'LOSSES_AND_EXCESSES': {
-        'model': models.LossesAndExcessesRevision,
-        'view': views.LossesAndExcessesRevisionView,
+        'render': views.render_write_off,
     }
 }
+
+
+def start_events_handling(
+        *,
+        message_queue_consumer: MessageQueueConsumer,
+        telegram_sender: TelegramSender,
+) -> NoReturn:
+    consumer_name = 'reports-sender'  # any name
+    for event in message_queue_consumer.start_consuming(consumer_name):
+        handle_event(
+            event=event,
+            telegram_sender=telegram_sender,
+        )
