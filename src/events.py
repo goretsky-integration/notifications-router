@@ -75,7 +75,7 @@ EVENT_STRATEGIES: dict[EventType, Strategy] = {
         'render': views.render_revenue_statistics,
     },
     EventType.STOP_SALES_BY_INGREDIENTS: {
-        'model': models.UnitStopSalesByIngredients,
+        'model': models.StopSaleByIngredients,
         'render': views.render_stop_sale_by_ingredients,
     },
     EventType.STOP_SALES_BY_SALES_CHANNELS: {
