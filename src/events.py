@@ -44,7 +44,11 @@ def handle_event(event: dict, telegram_sender: TelegramSender) -> None:
         logger.exception('Payload validation error')
         return
 
-    text = render(payload)
+    try:
+        text = render(payload)
+    except Exception:
+        logger.exception(f'Render error: {event.type}')
+        return
 
     for text_chunk in get_text_by_chunks(text):
         telegram_sender.send_messages(
