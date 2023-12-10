@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
-from models import UnitCanceledOrders, CanceledOrder, SalesChannel
+from enums import SalesChannel
+from models import UnitCanceledOrders, CanceledOrder
 from text_utils import intgaps
 from views.common import (
     humanize_sales_channel,

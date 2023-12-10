@@ -1,6 +1,7 @@
 import factory.fuzzy
 
-from models import WriteOff, WriteOffType
+from models import WriteOff
+from enums import WriteOffType
 
 __all__ = ('WriteOffFactory',)
 

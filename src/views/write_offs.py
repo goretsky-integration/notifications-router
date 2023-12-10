@@ -1,4 +1,5 @@
-from models import WriteOffType, WriteOff
+from models import WriteOff
+from enums import WriteOffType
 
 __all__ = ('render_write_off',)
 

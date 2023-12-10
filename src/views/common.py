@@ -5,8 +5,8 @@ from typing import Protocol, TypeVar
 
 import humanize
 
+from enums import SalesChannel
 from models import (
-    SalesChannel,
     CanceledOrder,
     UnitAwaitingOrders,
     UnitLateDeliveryVouchersStatistics,

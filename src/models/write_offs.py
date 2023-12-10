@@ -1,15 +1,8 @@
-from enum import Enum
-
 from pydantic import BaseModel
 
-__all__ = ('WriteOff', 'WriteOffType')
+from enums import WriteOffType
 
-
-class WriteOffType(Enum):
-    EXPIRE_AT_15_MINUTES = 'EXPIRE_AT_15_MINUTES'
-    EXPIRE_AT_10_MINUTES = 'EXPIRE_AT_10_MINUTES'
-    EXPIRE_AT_5_MINUTES = 'EXPIRE_AT_5_MINUTES'
-    ALREADY_EXPIRED = 'ALREADY_EXPIRED'
+__all__ = ('WriteOff',)
 
 
 class WriteOff(BaseModel):

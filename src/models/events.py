@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from models.event_types import EventType
+from enums import EventType
 
 __all__ = ('Event',)
 

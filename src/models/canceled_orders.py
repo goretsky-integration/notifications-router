@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from models.sales_channels import SalesChannel
+from enums import SalesChannel
 
 __all__ = ('UnitCanceledOrders', 'CanceledOrder')
 

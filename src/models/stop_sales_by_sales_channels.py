@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from models.sales_channels import SalesChannel
+from enums import SalesChannel
 
 __all__ = ('StopSaleBySalesChannels',)
 

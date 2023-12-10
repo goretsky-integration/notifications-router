@@ -1,6 +1,7 @@
 import factory.fuzzy
 
-from models import StopSaleBySalesChannels, SalesChannel
+from enums import SalesChannel
+from models import StopSaleBySalesChannels
 
 __all__ = ('StopSaleBySalesChannelsFactory',)
 

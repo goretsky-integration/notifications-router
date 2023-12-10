@@ -5,8 +5,9 @@ from pydantic import BaseModel, ValidationError
 
 import models
 import views
+from enums import EventType
 from message_queue import MessageQueueConsumer
-from models import EventType, Event
+from models import Event
 from telegram import TelegramSender
 from text_utils import get_text_by_chunks
 from views import RenderFunction

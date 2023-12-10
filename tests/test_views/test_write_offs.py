@@ -2,7 +2,7 @@ import textwrap
 
 import pytest
 
-from models import WriteOffType
+from enums import WriteOffType
 from tests.factories import WriteOffFactory
 from views import render_write_off
 

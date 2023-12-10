@@ -4,7 +4,6 @@ from .canceled_orders import *
 from .cooking_time import *
 from .delivery_productivity import *
 from .delivery_speed import *
-from .event_types import *
 from .events import *
 from .heated_shelf_time import *
 from .ingredient_stocks_balance import *
@@ -13,7 +12,6 @@ from .late_delivery_vouchers_statistics import *
 from .losses_and_excesses import *
 from .productivity_balance import *
 from .revenue_statistics import *
-from .sales_channels import *
 from .stop_sales_by_ingredients import *
 from .stop_sales_by_sales_channels import *
 from .suspicious_orders_by_phone_number import *
