@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Callable, Iterable
 from datetime import timedelta, datetime
-from typing import Protocol, TypeVar
+from typing import Protocol, TypeVar, Final
 
 import humanize
 
@@ -45,8 +45,8 @@ RenderFunction = Callable[[...], str]
 
 humanize.i18n.activate('ru_RU')
 
-DAY_IN_SECONDS = 86400
-HOUR_IN_SECONDS = 3600
+HOUR_IN_SECONDS: Final[int] = 3600
+DAY_IN_SECONDS: Final[int] = HOUR_IN_SECONDS * 24
 
 
 class HasUnitNameAndStartedAt(Protocol):
