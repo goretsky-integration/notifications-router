@@ -2,13 +2,12 @@ from collections.abc import Iterable
 
 from models import UnitAverageCookingTime
 from text_utils import humanize_seconds
+from views import sort_cooking_time_statistics
 
 __all__ = (
     'render_delivery_cooking_time',
     'render_restaurant_cooking_time',
 )
-
-from views import sort_cooking_time_statistics
 
 
 def render_cooking_time(
